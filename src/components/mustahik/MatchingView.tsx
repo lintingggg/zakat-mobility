@@ -1,0 +1,215 @@
+'use client';
+
+import React from 'react';
+import { useApp } from '@/context/AppContext';
+import { ArrowLeft, CheckCircle2, Check, Play } from 'lucide-react';
+
+export const MatchingView: React.FC = () => {
+  const {
+    zakatPackage,
+    applicationStep,
+    simulateNextStep,
+    documents,
+    setMustahikTab,
+    setCurrent6MStep,
+  } = useApp();
+
+  const totalAmount = zakatPackage.reduce((acc, curr) => acc + curr.amount, 0);
+
+  const steps = [
+    {
+      num: 1,
+      title: 'Berkas Diajukan',
+      desc: 'Formulir profil usaha dan 4 dokumen diterima sistem.',
+    },
+    {
+      num: 2,
+      title: 'Diverifikasi Amil',
+      desc: applicationStep >= 2 ? 'Verifikasi administrasi & survei lapangan disetujui amil.' : 'Menunggu tahap verifikasi lapangan oleh amil.',
+    },
+    {
+      num: 3,
+      title: 'Disetujui Lembaga',
+      desc: applicationStep >= 3 ? 'Surat Keputusan (SK) alokasi modal produktif telah diterbitkan.' : 'Menunggu penandatanganan SK pimpinan BAZNAS.',
+    },
+    {
+      num: 4,
+      title: 'Dana & Mesin Disalurkan',
+      desc: applicationStep === 4 ? 'Paket mesin produksi dan transfer modal kerja telah diserahkan.' : 'Menunggu penjadwalan serah terima pengadaan mesin.',
+    },
+  ];
+
+  return (
+    <div className="space-y-6 taste-enter">
+      {/* Top Bar with Back */}
+      <div className="flex items-center justify-between pb-3 border-b border-slate-200">
+        <div>
+          <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">2M: Matching (Alokasi Paket)</h2>
+          <p className="text-xs text-slate-600 mt-0.5">
+            Penyesuaian paket bantuan zakat produktif sesuai aspek usaha yang perlu intervensi.
+          </p>
+        </div>
+        <button
+          onClick={() => setMustahikTab('beranda')}
+          className="taste-btn px-3 py-1.5 text-slate-600 hover:text-slate-900 rounded-lg hover:bg-slate-100 flex items-center gap-1.5 text-xs font-semibold border border-slate-200"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span>Kembali</span>
+        </button>
+      </div>
+
+      {/* Responsive Grid: 2 Columns on Desktop */}
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-start">
+        {/* Left Column: Paket Zakat & Kelengkapan */}
+        <div className="md:col-span-6 space-y-5">
+          {/* Paket Zakat Produktif Card */}
+          <div className="taste-card bg-white rounded-2xl p-5 border border-slate-200 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+              <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+                Alokasi Paket Zakat Produktif
+              </h3>
+              <span className="text-[10px] font-mono bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold px-2 py-0.5 rounded">
+                Paket Terarah
+              </span>
+            </div>
+
+            <div className="space-y-2.5 text-xs">
+              {zakatPackage.map(item => (
+                <div key={item.category} className="flex justify-between items-center py-1 border-b border-slate-50 text-slate-600">
+                  <span>{item.category}</span>
+                  <span className="font-bold text-slate-900 font-mono">
+                    Rp{item.amount.toLocaleString('id-ID')}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            <div className="pt-2 border-t border-slate-200 flex justify-between items-center text-sm font-bold text-slate-900">
+              <span>Total Nilai Bantuan</span>
+              <span className="text-emerald-800 font-mono text-base font-extrabold">
+                Rp{totalAmount.toLocaleString('id-ID')}
+              </span>
+            </div>
+          </div>
+
+          {/* Rencana Penggunaan Dana */}
+          <div className="taste-card bg-white rounded-2xl p-5 border border-slate-200 space-y-2">
+            <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+              Rencana Penggunaan Alokasi
+            </h3>
+            <p className="text-xs text-slate-700 bg-slate-50 p-3 rounded-xl border border-slate-200 leading-relaxed font-mono">
+              Mesin pipil jagung kapasitas 150 kg/jam dan cadangan modal bahan baku jagung untuk 3 bulan operasional.
+            </p>
+          </div>
+
+          {/* Kelengkapan Dokumen */}
+          <div className="taste-card bg-white rounded-2xl p-5 border border-slate-200 space-y-3">
+            <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+              Dokumen Persyaratan Matching
+            </h3>
+            <div className="space-y-2 text-xs">
+              {documents.map(doc => {
+                const isVerified = doc.status === 'terverifikasi';
+                return (
+                  <div key={doc.id} className="flex items-center justify-between p-2.5 rounded-lg bg-slate-50 border border-slate-100">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2
+                        className={`w-4 h-4 shrink-0 ${
+                          isVerified ? 'text-emerald-600' : 'text-slate-300'
+                        }`}
+                      />
+                      <span className="text-slate-800 font-medium">{doc.name}</span>
+                    </div>
+                    <span
+                      className={`text-[10px] font-semibold px-2 py-0.5 rounded border ${
+                        isVerified ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-amber-50 text-amber-800 border-amber-200'
+                      }`}
+                    >
+                      {isVerified ? 'Terverifikasi' : 'Menunggu verifikasi'}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        {/* Right Column: Status Pengajuan Stepper */}
+        <div className="md:col-span-6 space-y-5">
+          <div className="taste-card bg-white rounded-2xl p-5 border border-slate-200 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+              <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+                Status Alur Persetujuan
+              </h3>
+              <span className="text-xs font-mono text-slate-500 font-medium">
+                Langkah {applicationStep} / 4
+              </span>
+            </div>
+
+            <div className="space-y-4 pt-1">
+              {steps.map(s => {
+                const isPassed = applicationStep >= s.num;
+                const isCurrent = applicationStep === s.num;
+
+                return (
+                  <div key={s.num} className="flex items-start gap-3.5">
+                    {/* Step Icon Indicator */}
+                    <div
+                      className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 mt-0.5 ${
+                        isPassed
+                          ? 'bg-emerald-800 text-white'
+                          : 'bg-slate-200 text-slate-500'
+                      }`}
+                    >
+                      {isPassed ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : s.num}
+                    </div>
+
+                    {/* Step Body */}
+                    <div className="flex-1 pb-1">
+                      <div className="flex items-center justify-between">
+                        <h4
+                          className={`text-xs font-bold ${
+                            isPassed ? 'text-slate-900' : 'text-slate-400'
+                          }`}
+                        >
+                          {s.title}
+                        </h4>
+                        {isCurrent && (
+                          <span className="text-[10px] bg-slate-900 text-white px-2 py-0.5 rounded font-mono font-semibold">
+                            Aktif
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                        {s.desc}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Interactive Simulation Button */}
+            <div className="pt-3 border-t border-slate-100 space-y-2">
+              <button
+                onClick={simulateNextStep}
+                className="taste-btn w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold rounded-xl border border-slate-300 flex items-center justify-center gap-2"
+              >
+                <Play className="w-3.5 h-3.5 text-emerald-700" />
+                Simulasikan Langkah Lembaga
+              </button>
+              <button
+                type="button"
+                onClick={() => setCurrent6MStep(3)}
+                className="taste-btn w-full py-3 bg-white hover:bg-slate-50 text-slate-800 text-xs font-bold rounded-xl border border-slate-300 flex items-center justify-center gap-2"
+              >
+                <span>Lanjut ke Tahap 3M (Mentoring)</span>
+                <span>→</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
