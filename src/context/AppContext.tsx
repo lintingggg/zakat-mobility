@@ -50,26 +50,28 @@ interface AppContextType {
   zakatPackage: ZakatPackageItem[];
   applicationStep: number; // 1: Diajukan, 2: Diverifikasi amil, 3: Disetujui, 4: Dana disalurkan
   simulateNextStep: () => void;
+  disburseZakatPackage: () => Promise<void>;
   resetApplicationStep: () => void;
 
   // Mentoring
   mentoringModules: MentoringModule[];
-  uploadModuleTask: (id: string, filename: string) => void;
+  uploadModuleTask: (id: string, filename: string, fileUrl?: string) => Promise<void>;
   isEnrolledTraining: boolean;
   toggleTrainingEnrollment: () => void;
 
   // Market
   marketChannels: MarketChannel[];
-  uploadChannelProof: (id: string, filename: string) => void;
+  uploadChannelProof: (id: string, filename: string, fileUrl?: string) => Promise<void>;
 
   // Monitoring
   monthlyReports: MonthlyReport[];
-  submitMonthlyReport: (report: Omit<MonthlyReport, 'id' | 'status'>) => void;
+  submitMonthlyReport: (report: Omit<MonthlyReport, 'id' | 'status'> & { receiptUrl?: string }) => Promise<void>;
 
   // Moving Up
   independenceIndicators: IndependenceIndicator[];
   isFullyGraduated: boolean;
   simulateFullGraduation: () => void;
+  graduateMustahik: () => Promise<void>;
 
   // Amil Workflow
   applicants: ApplicantItem[];
@@ -211,7 +213,41 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               if (parsed.address) savedAddress = parsed.address;
               if (parsed.duration) savedDuration = parsed.duration;
               if (parsed.aspects) savedAspects = parsed.aspects;
+
+              // 2M Matching
+              if (parsed.matching?.step) {
+                setApplicationStep(parsed.matching.step);
+                if (parsed.matching.step >= 4) {
+                  setCurrent6MStep(prev => Math.max(prev, 3));
+                } else if (parsed.matching.step >= 3) {
+                  setCurrent6MStep(prev => Math.max(prev, 2));
+                }
+              }
+
+              // 3M Mentoring
+              if (parsed.mentoring?.modules && Array.isArray(parsed.mentoring.modules) && parsed.mentoring.modules.length > 0) {
+                setMentoringModules(parsed.mentoring.modules);
+              }
+              if (parsed.mentoring?.enrolled !== undefined) {
+                setIsEnrolledTraining(parsed.mentoring.enrolled);
+              }
+
+              // 4M Market
+              if (parsed.market?.channels && Array.isArray(parsed.market.channels) && parsed.market.channels.length > 0) {
+                setMarketChannels(parsed.market.channels);
+              }
             } catch {}
+          }
+
+          // 5M Monitoring: Fetch reports from Supabase table
+          try {
+            const { fetchMonitoringReportsDB } = await import('@/services/zakatService');
+            const cloudReports = await fetchMonitoringReportsDB(currentUser.email);
+            if (cloudReports && cloudReports.length > 0) {
+              setMonthlyReports(cloudReports);
+            }
+          } catch (e) {
+            console.warn('Error fetching monitoring reports from DB:', e);
           }
 
           // Fallback to localStorage jika belum tersimpan di DB
@@ -271,6 +307,35 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           const isAppRejected = q.status === 'ditolak';
           const isAppWithdrawn = q.status === 'dibatalkan';
 
+          let applicantStage = 1;
+          let parsedCatatan: {
+            matching?: { step?: number; status?: string };
+            mentoring?: { modules?: MentoringModule[] };
+            market?: { channels?: MarketChannel[] };
+            monthlyReports?: MonthlyReport[];
+            movingUp?: { isGraduated?: boolean };
+          } = {};
+
+          if (q.catatan_amil) {
+            try {
+              parsedCatatan = JSON.parse(q.catatan_amil);
+            } catch {}
+          }
+
+          if (parsedCatatan.movingUp?.isGraduated) {
+            applicantStage = 6;
+          } else if (parsedCatatan.monthlyReports && parsedCatatan.monthlyReports.length >= 2) {
+            applicantStage = 5;
+          } else if (parsedCatatan.market?.channels?.some(c => c.status === 'terverifikasi')) {
+            applicantStage = 4;
+          } else if (parsedCatatan.mentoring?.modules?.some(m => m.status === 'terverifikasi')) {
+            applicantStage = 3;
+          } else if (parsedCatatan.matching?.status === 'disalurkan' || (parsedCatatan.matching?.step || 0) >= 4) {
+            applicantStage = 3;
+          } else if (isAppApproved || (parsedCatatan.matching?.step || 0) >= 3) {
+            applicantStage = 2;
+          }
+
           return {
             id: q.id || `q-${Math.random()}`,
             name: q.mustahik_name,
@@ -282,7 +347,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             potentialScore: q.skor || 50,
             status: isAppApproved ? 'Disetujui' : isAppRejected ? 'Ditolak' : isAppWithdrawn ? 'Ditolak' : 'Baru',
             submissionDate: q.created_at ? new Date(q.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }) : 'Hari ini',
-            stage: isAppApproved ? 2 : 1,
+            stage: applicantStage,
           };
         });
 
@@ -294,6 +359,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           if (q.catatan_amil && q.status !== 'dibatalkan') {
             try {
               const parsed = JSON.parse(q.catatan_amil);
+
+              // 1. Dokumen 1M
               if (parsed.documents && Array.isArray(parsed.documents)) {
                 parsed.documents.forEach((doc: DocumentItem) => {
                   if (doc.filename && doc.filename.trim() !== '') {
@@ -309,6 +376,62 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                       notes: doc.notes,
                     });
                   }
+                });
+              }
+
+              // 2. Tugas Mentoring 3M
+              if (parsed.mentoring?.modules && Array.isArray(parsed.mentoring.modules)) {
+                parsed.mentoring.modules.forEach((mod: MentoringModule) => {
+                  if (mod.filename && mod.filename.trim() !== '') {
+                    cloudEvidence.push({
+                      id: `ev-task-${mod.id}-${q.id}`,
+                      applicantName: q.mustahik_name,
+                      title: `Tugas: ${mod.title}`,
+                      filename: mod.filename,
+                      fileUrl: mod.fileUrl,
+                      type: 'tugas',
+                      status: mod.status === 'terverifikasi' ? 'terverifikasi' : mod.status === 'ditolak' ? 'perlu_revisi' : 'menunggu',
+                      submittedAt: 'Hari ini',
+                      notes: 'Tugas praktik modul 3M Mentoring',
+                    });
+                  }
+                });
+              }
+
+              // 3. Saluran Pasar 4M
+              if (parsed.market?.channels && Array.isArray(parsed.market.channels)) {
+                parsed.market.channels.forEach((ch: MarketChannel) => {
+                  if (ch.filename && ch.filename.trim() !== '') {
+                    cloudEvidence.push({
+                      id: `ev-channel-${ch.id}-${q.id}`,
+                      applicantName: q.mustahik_name,
+                      title: `Saluran: ${ch.name}`,
+                      filename: ch.filename,
+                      fileUrl: ch.fileUrl,
+                      type: 'pasar',
+                      status: ch.status === 'terverifikasi' ? 'terverifikasi' : ch.status === 'ditolak' ? 'perlu_revisi' : 'menunggu',
+                      submittedAt: 'Hari ini',
+                      notes: 'Bukti kanal penjualan 4M Market',
+                    });
+                  }
+                });
+              }
+
+              // 4. Laporan Finansial 5M
+              if (parsed.monthlyReports && Array.isArray(parsed.monthlyReports)) {
+                parsed.monthlyReports.forEach((rep: MonthlyReport) => {
+                  cloudEvidence.push({
+                    id: `ev-rep-${rep.id}-${q.id}`,
+                    applicantName: q.mustahik_name,
+                    title: `Laporan Omzet: ${rep.month} ${rep.year || 2026}`,
+                    filename: rep.receiptFilename || 'bukti_nota.jpg',
+                    fileUrl: rep.receiptUrl,
+                    type: 'laporan',
+                    description: `Omzet Rp${Number(rep.revenue).toLocaleString('id-ID')} · Beban Rp${Number(rep.expenses).toLocaleString('id-ID')}`,
+                    status: rep.status === 'terverifikasi' ? 'terverifikasi' : 'menunggu',
+                    submittedAt: 'Hari ini',
+                    notes: 'Laporan finansial & nota 5M Monitoring',
+                  });
                 });
               }
             } catch {}
@@ -344,6 +467,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         .on(
           'postgres_changes',
           { event: '*', schema: 'public', table: 'mustahik_mapping' },
+          () => {
+            syncDataFromCloud();
+          }
+        )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'monitoring_reports' },
           () => {
             syncDataFromCloud();
           }
@@ -434,69 +564,137 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setApplicationStep(prev => (prev < 4 ? prev + 1 : 1));
   };
 
+  const disburseZakatPackage = async () => {
+    setApplicationStep(4);
+    setCurrent6MStep(3); // Langsung buka Tahap 3M Mentoring
+    if (currentUser?.email) {
+      try {
+        const { saveMatchingState } = await import('@/services/zakatService');
+        await saveMatchingState(currentUser.email, 4, 'disalurkan', zakatPackage);
+      } catch (e) {
+        console.warn('Disburse to Supabase error:', e);
+      }
+    }
+  };
+
   const resetApplicationStep = () => {
     setApplicationStep(1);
   };
 
-  const uploadModuleTask = (id: string, filename: string) => {
-    setMentoringModules(prev =>
-      prev.map(m => (m.id === id ? { ...m, filename, status: 'menunggu' } : m))
-    );
+  const uploadModuleTask = async (id: string, filename: string, fileUrl?: string) => {
+    let nextModules: MentoringModule[] = [];
+    setMentoringModules(prev => {
+      const next = prev.map(m => (m.id === id ? { ...m, filename, fileUrl, status: 'menunggu' as const } : m));
+      nextModules = next;
+      return next;
+    });
+
+    if (currentUser?.email) {
+      try {
+        const { saveMentoringModules } = await import('@/services/zakatService');
+        await saveMentoringModules(currentUser.email, nextModules, isEnrolledTraining);
+      } catch (err) {
+        console.warn('Save mentoring error:', err);
+      }
+    }
+
     setEvidenceQueue(prev => [
       {
-        id: `ev-task-${Date.now()}`,
+        id: `ev-task-${id}-${Date.now()}`,
         applicantName: currentUser?.name || businessProfile.name,
         title: `Tugas Modul: ${id}`,
         filename,
+        fileUrl,
         type: 'tugas',
         status: 'menunggu',
         submittedAt: 'Hari ini',
+        notes: 'Tugas praktik modul 3M Mentoring',
       },
-      ...prev,
+      ...prev.filter(e => !e.id.includes(`task-${id}`)),
     ]);
   };
 
   const toggleTrainingEnrollment = () => {
-    setIsEnrolledTraining(prev => !prev);
+    setIsEnrolledTraining(prev => {
+      const next = !prev;
+      if (currentUser?.email) {
+        import('@/services/zakatService').then(({ saveMentoringModules }) => {
+          saveMentoringModules(currentUser.email, mentoringModules, next);
+        }).catch(err => console.warn('Save enrollment error:', err));
+      }
+      return next;
+    });
   };
 
-  const uploadChannelProof = (id: string, filename: string) => {
-    setMarketChannels(prev =>
-      prev.map(c => (c.id === id ? { ...c, filename, status: 'menunggu' } : c))
-    );
+  const uploadChannelProof = async (id: string, filename: string, fileUrl?: string) => {
+    let nextChannels: MarketChannel[] = [];
+    setMarketChannels(prev => {
+      const next = prev.map(c => (c.id === id ? { ...c, filename, fileUrl, status: 'menunggu' as const } : c));
+      nextChannels = next;
+      return next;
+    });
+
+    if (currentUser?.email) {
+      try {
+        const { saveMarketChannels } = await import('@/services/zakatService');
+        await saveMarketChannels(currentUser.email, nextChannels);
+      } catch (err) {
+        console.warn('Save market error:', err);
+      }
+    }
+
     setEvidenceQueue(prev => [
       {
-        id: `ev-channel-${Date.now()}`,
+        id: `ev-channel-${id}-${Date.now()}`,
         applicantName: currentUser?.name || businessProfile.name,
-        title: `Bukti Saluran Pasar: ${id}`,
+        title: `Saluran Pasar: ${id}`,
         filename,
+        fileUrl,
         type: 'pasar',
         status: 'menunggu',
         submittedAt: 'Hari ini',
+        notes: 'Bukti transaksi kanal pasar 4M Market',
       },
-      ...prev,
+      ...prev.filter(e => !e.id.includes(`channel-${id}`)),
     ]);
   };
 
-  const submitMonthlyReport = (report: Omit<MonthlyReport, 'id' | 'status'>) => {
-    const newRep: MonthlyReport = {
+  const submitMonthlyReport = async (report: Omit<MonthlyReport, 'id' | 'status'> & { receiptUrl?: string }) => {
+    let savedReport: MonthlyReport = {
       ...report,
       id: `rep-${Date.now()}`,
       status: 'menunggu',
     };
-    setMonthlyReports(prev => [newRep, ...prev]);
+
+    if (currentUser?.email) {
+      try {
+        const { submitMonitoringReportDB } = await import('@/services/zakatService');
+        const res = await submitMonitoringReportDB(currentUser.email, report);
+        if (res) savedReport = res;
+      } catch (err) {
+        console.warn('Submit monthly report to Supabase error:', err);
+      }
+    }
+
+    setMonthlyReports(prev => [
+      savedReport,
+      ...prev.filter(r => r.id !== savedReport.id && r.month !== savedReport.month)
+    ]);
+
     setEvidenceQueue(prev => [
       {
-        id: `ev-rep-${Date.now()}`,
+        id: `ev-rep-${savedReport.id}`,
         applicantName: currentUser?.name || businessProfile.name,
-        title: `Laporan Omzet: ${report.month}`,
+        title: `Laporan Omzet: ${report.month} ${report.year}`,
         filename: report.receiptFilename || 'bukti_nota.jpg',
+        fileUrl: report.receiptUrl,
         type: 'laporan',
-        description: `Omzet Rp${report.revenue.toLocaleString('id-ID')} · Biaya Rp${report.expenses.toLocaleString('id-ID')}`,
+        description: `Omzet Rp${report.revenue.toLocaleString('id-ID')} · Beban Rp${report.expenses.toLocaleString('id-ID')}`,
         status: 'menunggu',
         submittedAt: 'Hari ini',
+        notes: 'Laporan finansial & nota 5M Monitoring',
       },
-      ...prev,
+      ...prev.filter(e => e.id !== `ev-rep-${savedReport.id}`),
     ]);
   };
 
@@ -513,7 +711,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       )
     );
 
-    // If it's one of the primary docs
     const targetItem = evidenceQueue.find(e => e.id === id);
     if (!targetItem) return;
 
@@ -534,15 +731,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         }
         return next;
       });
-
-      // Simpan perubahan verifikasi ke Supabase
-      import('@/services/zakatService').then(({ updateEvidenceVerification }) => {
-        updateEvidenceVerification(id, targetItem.applicantName, isApproved, notes);
-      }).catch(err => console.warn('Supabase verify evidence error:', err));
     } else if (targetItem.type === 'tugas') {
       setMentoringModules(prev =>
         prev.map(m =>
-          targetItem.title.includes(m.id)
+          targetItem.title.toLowerCase().includes(m.id.toLowerCase()) || targetItem.title.toLowerCase().includes(m.title.toLowerCase())
             ? { ...m, status: isApproved ? 'terverifikasi' : 'ditolak' }
             : m
         )
@@ -550,7 +742,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     } else if (targetItem.type === 'pasar') {
       setMarketChannels(prev =>
         prev.map(c =>
-          targetItem.title.includes(c.id)
+          targetItem.title.toLowerCase().includes(c.id.toLowerCase()) || targetItem.title.toLowerCase().includes(c.name.toLowerCase())
             ? { ...c, status: isApproved ? 'terverifikasi' : 'ditolak' }
             : c
         )
@@ -558,12 +750,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     } else if (targetItem.type === 'laporan') {
       setMonthlyReports(prev =>
         prev.map(r =>
-          targetItem.title.includes(r.month) || r.id === 'rep-jul'
+          targetItem.title.toLowerCase().includes(r.month.toLowerCase()) || targetItem.id.includes(r.id)
             ? { ...r, status: isApproved ? 'terverifikasi' : 'ditolak' }
             : r
         )
       );
     }
+
+    // Simpan verifikasi ke Supabase untuk semua tipe (dokumen, tugas, pasar, laporan)
+    import('@/services/zakatService').then(({ updateEvidenceVerification }) => {
+      updateEvidenceVerification(id, targetItem.applicantName, isApproved, notes, targetItem.type);
+    }).catch(err => console.warn('Supabase verify evidence error:', err));
   };
 
   const updateApplicantStatus = async (id: string, status: 'Baru' | 'Disetujui' | 'Didampingi' | 'Ditolak') => {
@@ -677,6 +874,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setApplicationStep(4);
     // Mark evidence as verified
     setEvidenceQueue(prev => prev.map(e => ({ ...e, status: 'terverifikasi' })));
+  };
+
+  const graduateMustahik = async () => {
+    simulateFullGraduation();
+    if (currentUser?.email) {
+      try {
+        const { saveGraduationStatus } = await import('@/services/zakatService');
+        await saveGraduationStatus(currentUser.email, true, 'Lulus Mandiri Menjadi Muzakki Baru');
+      } catch (e) {
+        console.warn('Graduation to Supabase error:', e);
+      }
+    }
   };
 
   const resetAllMockData = () => {
@@ -831,6 +1040,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         zakatPackage,
         applicationStep,
         simulateNextStep,
+        disburseZakatPackage,
         resetApplicationStep,
         mentoringModules,
         uploadModuleTask,
@@ -843,6 +1053,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         independenceIndicators,
         isFullyGraduated,
         simulateFullGraduation,
+        graduateMustahik,
         applicants,
         updateApplicantStatus,
         evidenceQueue,

@@ -11,6 +11,7 @@ export const MatchingView: React.FC = () => {
     applicationStep,
     submissionStatus,
     simulateNextStep,
+    disburseZakatPackage,
     documents,
     setMustahikTab,
     setCurrent6MStep,
@@ -223,22 +224,45 @@ export const MatchingView: React.FC = () => {
               })}
             </div>
 
-            {/* Interactive Simulation Button */}
-            <div className="pt-3 border-t border-slate-100 space-y-2">
-              <button
-                onClick={simulateNextStep}
-                className="btn-secondary w-full text-xs text-[#1A4331] border-[#1A4331] hover:bg-[#E8F3ED]"
-              >
-                <Play className="w-3.5 h-3.5 text-[#1A4331]" />
-                <span>Simulasikan Langkah Lembaga</span>
-              </button>
+            {/* Interactive Action & Navigation */}
+            <div className="pt-3 border-t border-slate-100 space-y-2.5">
+              {applicationStep === 3 ? (
+                <button
+                  type="button"
+                  onClick={disburseZakatPackage}
+                  className="btn-primary w-full text-xs py-2.5 shadow-xs flex items-center justify-center gap-2"
+                >
+                  <CheckCircle2 className="w-4 h-4" />
+                  <span>Konfirmasi Serah Terima Mesin & Akad Komitmen</span>
+                </button>
+              ) : applicationStep >= 4 ? (
+                <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-200 text-xs text-emerald-900 space-y-1">
+                  <div className="flex items-center gap-2 font-bold">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-700" />
+                    <span>Dana & Mesin Telah Disalurkan</span>
+                  </div>
+                  <p className="text-[11px] text-emerald-800 leading-relaxed">
+                    Paket bantuan zakat produktif telah diserahkan. Silakan lanjut ke modul pelatihan usaha.
+                  </p>
+                </div>
+              ) : null}
+
               <button
                 type="button"
                 onClick={() => setCurrent6MStep(3)}
-                className="btn-secondary w-full text-xs text-[#111827] border-slate-300 hover:bg-slate-100"
+                className="btn-primary w-full text-xs py-2 bg-emerald-800 hover:bg-emerald-900 text-white flex items-center justify-center gap-1.5"
               >
                 <span>Lanjut ke Tahap 3M (Mentoring)</span>
                 <span>→</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={simulateNextStep}
+                className="taste-btn w-full text-[11px] text-slate-500 hover:text-slate-800 flex items-center justify-center gap-1 py-1"
+              >
+                <Play className="w-3 h-3 text-slate-400" />
+                <span>Simulasikan Alur (Debug / Pengujian)</span>
               </button>
             </div>
           </div>

@@ -266,12 +266,18 @@ export const AmilSubmissions: React.FC = () => {
 
                 {/* Dynamic Action Buttons Sesuaikan dengan Tahap */}
                 <div className="pt-3 border-t border-slate-100">
-                  {selectedApp.status === 'Disetujui' || selectedApp.stage === 2 ? (
-                    /* Jika Sudah di Tahap 2 */
+                  {selectedApp.status === 'Disetujui' || (selectedApp.stage && selectedApp.stage >= 2) ? (
+                    /* Jika Sudah di Tahap 2 ke atas */
                     <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
                       <div className="flex items-center gap-2 text-[#1A4331] font-semibold">
                         <CheckCircle2 className="w-5 h-5 text-[#277A4D] shrink-0" />
-                        <span>Proposal telah lolos Tahap 1 dan aktif di Tahap 2 (Matching).</span>
+                        <span>
+                          {selectedApp.stage === 6 ? 'Binaan telah memenuhi syarat Tahap 6M (Moving Up: Mandiri).' :
+                           selectedApp.stage === 5 ? 'Binaan aktif di Tahap 5M (Monitoring: Pencatatan Omzet).' :
+                           selectedApp.stage === 4 ? 'Binaan aktif di Tahap 4M (Market: Saluran Pasar).' :
+                           selectedApp.stage === 3 ? 'Binaan aktif di Tahap 3M (Mentoring: Pelatihan Usaha).' :
+                           'Proposal telah lolos Tahap 1 dan aktif di Tahap 2M (Matching: Alokasi Modal).'}
+                        </span>
                       </div>
                       <button
                         type="button"

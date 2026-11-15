@@ -10,6 +10,7 @@ export const MovingUpView: React.FC = () => {
     independenceIndicators,
     isFullyGraduated,
     simulateFullGraduation,
+    graduateMustahik,
     setMustahikTab,
   } = useApp();
 
@@ -168,17 +169,27 @@ export const MovingUpView: React.FC = () => {
                 : 'Pendampingan berlanjut: Pembinaan keuangan dan fasilitasi akses pasar oleh amil BAZNAS tetap berlangsung hingga 6 indikator tercapai.'}
             </p>
 
-            {metCount < 5 && (
-              <div className="pt-4 mt-3 border-t border-slate-100">
+            <div className="pt-4 mt-3 border-t border-slate-100/20 space-y-2">
+              {metCount >= 5 ? (
                 <button
-                  onClick={simulateFullGraduation}
-                  className="btn-secondary w-full text-xs bg-amber-50 border-amber-300 text-amber-900 hover:bg-amber-100"
+                  type="button"
+                  onClick={graduateMustahik}
+                  className="w-full py-2.5 px-4 bg-white text-[#1A4331] font-bold text-xs rounded-xl shadow-xs hover:bg-emerald-50 transition-all flex items-center justify-center gap-2"
+                >
+                  <Sparkles className="w-4 h-4 text-emerald-700" />
+                  <span>Kukuhkan Kelulusan Menjadi Muzakki Baru</span>
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={graduateMustahik}
+                  className="btn-secondary w-full text-xs bg-amber-50 border-amber-300 text-amber-900 hover:bg-amber-100 flex items-center justify-center gap-1.5"
                 >
                   <Sparkles className="w-3.5 h-3.5 text-amber-600" />
-                  <span>Simulasi Mandiri (Loloskan 6/6)</span>
+                  <span>Simulasi Mandiri (Loloskan 6/6 ke Supabase)</span>
                 </button>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
       </div>

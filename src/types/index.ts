@@ -44,6 +44,7 @@ export interface MentoringModule {
   description: string;
   status: VerificationStatus;
   filename?: string;
+  fileUrl?: string;
   score?: number;
 }
 
@@ -53,6 +54,7 @@ export interface MarketChannel {
   description: string;
   status: VerificationStatus;
   filename?: string;
+  fileUrl?: string;
 }
 
 export interface MonthlyReport {
@@ -64,6 +66,7 @@ export interface MonthlyReport {
   netIncome: number;
   employeeCount: number;
   receiptFilename?: string;
+  receiptUrl?: string;
   status: VerificationStatus;
 }
 

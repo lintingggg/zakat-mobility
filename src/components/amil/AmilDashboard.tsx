@@ -122,13 +122,21 @@ export const AmilDashboard: React.FC = () => {
                 <strong>{approvedSubmissions} usaha disetujui</strong> dari {totalSubmissions} pengajuan masuk.
               </p>
               <div className="pt-1 flex flex-col gap-2 text-xs">
-                {applicants.slice(0, 3).map(app => (
-                  <div key={app.id} className="flex items-center justify-between p-2 rounded-lg bg-slate-50 text-slate-800 border border-slate-200">
+                {applicants.slice(0, 5).map(app => (
+                  <div key={app.id} className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 text-slate-800 border border-slate-200">
                     <div className="flex items-center gap-2 truncate">
                       <span className={`w-2 h-2 rounded-full ${app.status === 'Disetujui' ? 'bg-emerald-600' : 'bg-amber-500'} shrink-0`} />
                       <span className="font-semibold truncate">{app.businessName} ({app.name})</span>
                     </div>
-                    <span className="text-[11px] font-mono text-slate-500 shrink-0">{app.status}</span>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <span className="text-[10px] font-mono font-bold bg-[#E8F3ED] text-[#1A4331] px-2 py-0.5 rounded border border-[#277A4D]/20">
+                        {app.stage === 6 ? '6M: Mandiri' :
+                         app.stage === 5 ? '5M: Monitoring' :
+                         app.stage === 4 ? '4M: Market' :
+                         app.stage === 3 ? '3M: Mentoring' :
+                         app.stage === 2 ? '2M: Matching' : '1M: Mapping'}
+                      </span>
+                    </div>
                   </div>
                 ))}
               </div>

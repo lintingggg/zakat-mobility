@@ -1,5 +1,13 @@
 import { supabase } from '@/lib/supabase';
-import { UserRole, BusinessProfile, DocumentItem } from '@/types';
+import {
+  UserRole,
+  BusinessProfile,
+  DocumentItem,
+  MentoringModule,
+  MarketChannel,
+  MonthlyReport,
+  ZakatPackageItem,
+} from '@/types';
 
 export interface UserProfileDB {
   id: string;
@@ -326,21 +334,22 @@ export async function saveDocumentsMetadata(userEmail: string, documents: Docume
   }
 }
 
-// Verifikasi dokumen spesifik oleh Amil dan simpan ke Supabase
+// Verifikasi bukti (dokumen 1M, tugas 3M, pasar 4M, laporan 5M) oleh Amil dan simpan ke Supabase
 export async function updateEvidenceVerification(
   evidenceId: string,
   applicantName: string,
   isApproved: boolean,
-  notes?: string
+  notes?: string,
+  evidenceType?: 'dokumen' | 'tugas' | 'pasar' | 'laporan',
+  targetKey?: string
 ) {
   try {
-    // Cari row di verification_queue berdasarkan ID atau nama
     const parts = evidenceId.split('-');
-    const docId = parts[1] || '';
+    const docId = targetKey || parts[1] || '';
     const queueId = parts.slice(2).join('-');
 
     let queueItem = null;
-    if (queueId) {
+    if (queueId && queueId.length > 5) {
       const { data } = await supabase
         .from('verification_queue')
         .select('*')
@@ -354,20 +363,53 @@ export async function updateEvidenceVerification(
         .from('verification_queue')
         .select('*')
         .ilike('mustahik_name', applicantName)
+        .order('updated_at', { ascending: false })
+        .limit(1)
         .maybeSingle();
       queueItem = data;
     }
 
+    if (!queueItem) {
+      // Coba cari dari mustahik_mapping
+      const { data: mappingData } = await supabase
+        .from('mustahik_mapping')
+        .select('*')
+        .ilike('user_email', `%${applicantName.toLowerCase().replace(/\s+/g, '')}%`)
+        .maybeSingle();
+      if (mappingData) {
+        queueItem = {
+          id: mappingData.id,
+          mustahik_name: applicantName,
+          mustahik_email: mappingData.user_email,
+          catatan_amil: mappingData.catatan_amil,
+        };
+      }
+    }
+
     if (!queueItem) return false;
 
-    let extraData: { documents?: DocumentItem[]; [key: string]: unknown } = {};
+    let extraData: {
+      documents?: DocumentItem[];
+      mentoring?: { enrolled?: boolean; modules?: MentoringModule[] };
+      market?: { channels?: MarketChannel[] };
+      monthlyReports?: MonthlyReport[];
+      [key: string]: unknown;
+    } = {};
+
     if (queueItem.catatan_amil) {
       try {
         extraData = JSON.parse(queueItem.catatan_amil);
       } catch {}
     }
 
-    if (extraData.documents && Array.isArray(extraData.documents)) {
+    const type = evidenceType || (
+      evidenceId.includes('task') ? 'tugas' :
+      evidenceId.includes('channel') ? 'pasar' :
+      evidenceId.includes('rep') ? 'laporan' : 'dokumen'
+    );
+
+    // 1. Dokumen 1M
+    if (type === 'dokumen' && extraData.documents && Array.isArray(extraData.documents)) {
       extraData.documents = extraData.documents.map((d: DocumentItem) => {
         if (d.id.toLowerCase() === docId.toLowerCase() || d.name.toLowerCase().includes(docId.toLowerCase())) {
           return {
@@ -380,16 +422,69 @@ export async function updateEvidenceVerification(
       });
     }
 
+    // 2. Tugas Mentoring 3M
+    if (type === 'tugas' && extraData.mentoring?.modules && Array.isArray(extraData.mentoring.modules)) {
+      extraData.mentoring.modules = extraData.mentoring.modules.map((m: MentoringModule) => {
+        if (m.id.toLowerCase() === docId.toLowerCase() || evidenceId.includes(m.id)) {
+          return {
+            ...m,
+            status: isApproved ? 'terverifikasi' : 'ditolak',
+          };
+        }
+        return m;
+      });
+    }
+
+    // 3. Saluran Pasar 4M
+    if (type === 'pasar' && extraData.market?.channels && Array.isArray(extraData.market.channels)) {
+      extraData.market.channels = extraData.market.channels.map((c: MarketChannel) => {
+        if (c.id.toLowerCase() === docId.toLowerCase() || evidenceId.includes(c.id)) {
+          return {
+            ...c,
+            status: isApproved ? 'terverifikasi' : 'ditolak',
+          };
+        }
+        return c;
+      });
+    }
+
+    // 4. Laporan Keuangan 5M
+    if (type === 'laporan') {
+      if (extraData.monthlyReports && Array.isArray(extraData.monthlyReports)) {
+        extraData.monthlyReports = extraData.monthlyReports.map((r: MonthlyReport) => {
+          if (r.month.toLowerCase() === docId.toLowerCase() || evidenceId.includes(r.id) || r.id === docId) {
+            return {
+              ...r,
+              status: isApproved ? 'terverifikasi' : 'ditolak',
+            };
+          }
+          return r;
+        });
+      }
+
+      // Update tabel monitoring_reports di Supabase
+      if (queueItem.mustahik_email) {
+        await supabase
+          .from('monitoring_reports')
+          .update({
+            status: isApproved ? 'terverifikasi' : 'dibatalkan',
+          })
+          .eq('user_email', queueItem.mustahik_email.toLowerCase());
+      }
+    }
+
     const updatedJson = JSON.stringify(extraData);
 
     // Update verification_queue
-    await supabase
-      .from('verification_queue')
-      .update({
-        catatan_amil: updatedJson,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', queueItem.id);
+    if (queueItem.id) {
+      await supabase
+        .from('verification_queue')
+        .update({
+          catatan_amil: updatedJson,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', queueItem.id);
+    }
 
     // Update mustahik_mapping
     if (queueItem.mustahik_email) {
@@ -406,6 +501,376 @@ export async function updateEvidenceVerification(
   } catch (err) {
     console.error('Error updating evidence verification:', err);
     return false;
+  }
+}
+
+// ----------------------------------------------------
+// TAHAP 2M: MATCHING (ALOKASI BANTUAN & PENYALURAN)
+// ----------------------------------------------------
+export async function saveMatchingState(
+  userEmail: string,
+  step: number,
+  status: string,
+  packageItems?: ZakatPackageItem[]
+) {
+  try {
+    const cleanEmail = userEmail.trim().toLowerCase();
+    const { data: mapping } = await supabase
+      .from('mustahik_mapping')
+      .select('id, catatan_amil')
+      .eq('user_email', cleanEmail)
+      .maybeSingle();
+
+    let extraData: Record<string, unknown> = {};
+    if (mapping?.catatan_amil) {
+      try {
+        extraData = JSON.parse(mapping.catatan_amil);
+      } catch {}
+    }
+
+    extraData.matching = {
+      step,
+      status,
+      disbursedAt: step >= 4 ? new Date().toISOString() : ((extraData.matching as Record<string, unknown>)?.disbursedAt || null),
+      package: packageItems || (extraData.matching as Record<string, unknown>)?.package || [],
+      totalAmount: packageItems ? packageItems.reduce((acc, p) => acc + p.amount, 0) : 3500000,
+      notes: step >= 4 ? 'Paket mesin & modal disalurkan' : 'Disetujui lembaga',
+    };
+
+    const jsonStr = JSON.stringify(extraData);
+
+    if (mapping) {
+      await supabase
+        .from('mustahik_mapping')
+        .update({
+          catatan_amil: jsonStr,
+          status_pengajuan: step >= 3 ? 'disetujui' : 'diajukan',
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', mapping.id);
+    }
+
+    await supabase
+      .from('verification_queue')
+      .update({
+        catatan_amil: jsonStr,
+        status: step >= 3 ? 'disetujui' : 'menunggu',
+        updated_at: new Date().toISOString(),
+      })
+      .eq('mustahik_email', cleanEmail);
+
+    return true;
+  } catch (err) {
+    console.error('Error saving matching state:', err);
+    return false;
+  }
+}
+
+// ----------------------------------------------------
+// TAHAP 3M: MENTORING (TUGAS & KELAS PELATIHAN)
+// ----------------------------------------------------
+export async function saveMentoringModules(
+  userEmail: string,
+  modules: MentoringModule[],
+  isEnrolled?: boolean
+) {
+  try {
+    const cleanEmail = userEmail.trim().toLowerCase();
+    const { data: mapping } = await supabase
+      .from('mustahik_mapping')
+      .select('id, catatan_amil')
+      .eq('user_email', cleanEmail)
+      .maybeSingle();
+
+    let extraData: Record<string, unknown> = {};
+    if (mapping?.catatan_amil) {
+      try {
+        extraData = JSON.parse(mapping.catatan_amil);
+      } catch {}
+    }
+
+    extraData.mentoring = {
+      enrolled: isEnrolled !== undefined ? isEnrolled : Boolean((extraData.mentoring as Record<string, unknown>)?.enrolled),
+      modules,
+    };
+
+    const jsonStr = JSON.stringify(extraData);
+
+    if (mapping) {
+      await supabase
+        .from('mustahik_mapping')
+        .update({ catatan_amil: jsonStr, updated_at: new Date().toISOString() })
+        .eq('id', mapping.id);
+    }
+
+    await supabase
+      .from('verification_queue')
+      .update({ catatan_amil: jsonStr, updated_at: new Date().toISOString() })
+      .eq('mustahik_email', cleanEmail);
+
+    return true;
+  } catch (err) {
+    console.error('Error saving mentoring modules:', err);
+    return false;
+  }
+}
+
+// ----------------------------------------------------
+// TAHAP 4M: MARKET (SALURAN PENJUALAN AKTIF)
+// ----------------------------------------------------
+export async function saveMarketChannels(
+  userEmail: string,
+  channels: MarketChannel[]
+) {
+  try {
+    const cleanEmail = userEmail.trim().toLowerCase();
+    const { data: mapping } = await supabase
+      .from('mustahik_mapping')
+      .select('id, catatan_amil')
+      .eq('user_email', cleanEmail)
+      .maybeSingle();
+
+    let extraData: Record<string, unknown> = {};
+    if (mapping?.catatan_amil) {
+      try {
+        extraData = JSON.parse(mapping.catatan_amil);
+      } catch {}
+    }
+
+    extraData.market = {
+      channels,
+    };
+
+    const jsonStr = JSON.stringify(extraData);
+
+    if (mapping) {
+      await supabase
+        .from('mustahik_mapping')
+        .update({ catatan_amil: jsonStr, updated_at: new Date().toISOString() })
+        .eq('id', mapping.id);
+    }
+
+    await supabase
+      .from('verification_queue')
+      .update({ catatan_amil: jsonStr, updated_at: new Date().toISOString() })
+      .eq('mustahik_email', cleanEmail);
+
+    return true;
+  } catch (err) {
+    console.error('Error saving market channels:', err);
+    return false;
+  }
+}
+
+// ----------------------------------------------------
+// TAHAP 5M: MONITORING (LAPORAN FINANSIAL SUPABASE)
+// ----------------------------------------------------
+export async function submitMonitoringReportDB(
+  userEmail: string,
+  report: Omit<MonthlyReport, 'id' | 'status'> & { status?: string }
+): Promise<MonthlyReport | null> {
+  try {
+    const cleanEmail = userEmail.trim().toLowerCase();
+
+    const monthOrder: Record<string, number> = {
+      'Mei': 1, 'Jun': 2, 'Jul': 3, 'Agu': 4, 'Sep': 5, 'Okt': 6,
+      'Nov': 7, 'Des': 8, 'Jan': 9, 'Feb': 10, 'Mar': 11, 'Apr': 12
+    };
+    const bulanKe = monthOrder[report.month] || 3;
+
+    const extraMetadata = {
+      expenses: report.expenses,
+      netIncome: report.netIncome,
+      employeeCount: report.employeeCount,
+      receiptFilename: report.receiptFilename || 'bukti_nota.jpg',
+      receiptUrl: report.receiptUrl || '',
+      monthName: report.month,
+      year: report.year,
+    };
+
+    const payload = {
+      user_email: cleanEmail,
+      bulan_ke: bulanKe,
+      omzet_aktual: report.revenue,
+      target_omzet: 4000000,
+      catatan_kendala: JSON.stringify(extraMetadata),
+      status: report.status || 'diajukan',
+    };
+
+    const { data, error } = await supabase
+      .from('monitoring_reports')
+      .insert([payload])
+      .select()
+      .single();
+
+    if (error) {
+      console.warn('Error inserting monitoring report to Supabase:', error.message);
+    }
+
+    const savedReport: MonthlyReport = {
+      id: data?.id || `rep-${Date.now()}`,
+      month: report.month,
+      year: report.year,
+      revenue: report.revenue,
+      expenses: report.expenses,
+      netIncome: report.netIncome,
+      employeeCount: report.employeeCount,
+      receiptFilename: report.receiptFilename,
+      receiptUrl: report.receiptUrl,
+      status: data?.status === 'terverifikasi' ? 'terverifikasi' : 'menunggu',
+    };
+
+    // Sinkronkan juga riwayat ke catatan_amil di mustahik_mapping
+    const { data: mapping } = await supabase
+      .from('mustahik_mapping')
+      .select('id, catatan_amil')
+      .eq('user_email', cleanEmail)
+      .maybeSingle();
+
+    if (mapping) {
+      let extraData: Record<string, unknown> = {};
+      if (mapping.catatan_amil) {
+        try { extraData = JSON.parse(mapping.catatan_amil); } catch {}
+      }
+      const existingReports = Array.isArray(extraData.monthlyReports) ? (extraData.monthlyReports as MonthlyReport[]) : [];
+      extraData.monthlyReports = [
+        savedReport,
+        ...existingReports.filter(r => r.id !== savedReport.id && r.month !== savedReport.month)
+      ];
+
+      const jsonStr = JSON.stringify(extraData);
+      await supabase.from('mustahik_mapping').update({ catatan_amil: jsonStr }).eq('id', mapping.id);
+      await supabase.from('verification_queue').update({ catatan_amil: jsonStr }).eq('mustahik_email', cleanEmail);
+    }
+
+    return savedReport;
+  } catch (err) {
+    console.error('Error in submitMonitoringReportDB:', err);
+    return null;
+  }
+}
+
+export async function fetchMonitoringReportsDB(userEmail: string): Promise<MonthlyReport[]> {
+  try {
+    const cleanEmail = userEmail.trim().toLowerCase();
+    const { data, error } = await supabase
+      .from('monitoring_reports')
+      .select('*')
+      .eq('user_email', cleanEmail)
+      .order('bulan_ke', { ascending: false });
+
+    if (error || !data || data.length === 0) {
+      // Check fallback in mustahik_mapping.catatan_amil
+      const { data: mapping } = await supabase
+        .from('mustahik_mapping')
+        .select('catatan_amil')
+        .eq('user_email', cleanEmail)
+        .maybeSingle();
+
+      if (mapping?.catatan_amil) {
+        try {
+          const parsed = JSON.parse(mapping.catatan_amil);
+          if (Array.isArray(parsed.monthlyReports)) return parsed.monthlyReports;
+        } catch {}
+      }
+      return [];
+    }
+
+    return data.map(item => {
+      let parsed = { expenses: 0, netIncome: 0, employeeCount: 1, receiptFilename: '', receiptUrl: '', monthName: 'Bulan', year: 2026 };
+      if (item.catatan_kendala) {
+        try {
+          parsed = { ...parsed, ...JSON.parse(item.catatan_kendala) };
+        } catch {}
+      }
+
+      return {
+        id: item.id || `rep-${item.bulan_ke}`,
+        month: parsed.monthName || `Bulan ${item.bulan_ke}`,
+        year: parsed.year || 2026,
+        revenue: Number(item.omzet_aktual) || 0,
+        expenses: Number(parsed.expenses) || 0,
+        netIncome: Number(parsed.netIncome) || (Number(item.omzet_aktual) - Number(parsed.expenses)),
+        employeeCount: Number(parsed.employeeCount) || 1,
+        receiptFilename: parsed.receiptFilename,
+        receiptUrl: parsed.receiptUrl,
+        status: (item.status === 'terverifikasi' ? 'terverifikasi' : 'menunggu') as 'terverifikasi' | 'menunggu',
+      };
+    });
+  } catch (err) {
+    console.warn('Error fetching monitoring reports:', err);
+    return [];
+  }
+}
+
+// ----------------------------------------------------
+// TAHAP 6M: MOVING UP (KELULUSAN MANDIRI KE MUZAKKI)
+// ----------------------------------------------------
+export async function saveGraduationStatus(
+  userEmail: string,
+  isGraduated: boolean,
+  notes?: string
+) {
+  try {
+    const cleanEmail = userEmail.trim().toLowerCase();
+    const { data: mapping } = await supabase
+      .from('mustahik_mapping')
+      .select('id, catatan_amil')
+      .eq('user_email', cleanEmail)
+      .maybeSingle();
+
+    let extraData: Record<string, unknown> = {};
+    if (mapping?.catatan_amil) {
+      try { extraData = JSON.parse(mapping.catatan_amil); } catch {}
+    }
+
+    extraData.movingUp = {
+      isGraduated,
+      graduatedAt: isGraduated ? new Date().toISOString() : null,
+      status: isGraduated ? 'muzakki_baru' : 'mustahik_binaan',
+      notes: notes || (isGraduated ? 'Lulus mandiri melampaui Had Kifayah (Muzakki Baru)' : 'Dalam pendampingan')
+    };
+
+    const jsonStr = JSON.stringify(extraData);
+
+    if (mapping) {
+      await supabase
+        .from('mustahik_mapping')
+        .update({ catatan_amil: jsonStr, updated_at: new Date().toISOString() })
+        .eq('id', mapping.id);
+    }
+
+    await supabase
+      .from('verification_queue')
+      .update({ catatan_amil: jsonStr, updated_at: new Date().toISOString() })
+      .eq('mustahik_email', cleanEmail);
+
+    return true;
+  } catch (err) {
+    console.error('Error saving graduation status:', err);
+    return false;
+  }
+}
+
+// ----------------------------------------------------
+// TRANSPARANSI DONATUR (MUZAKKI IMPACT DATA)
+// ----------------------------------------------------
+export async function fetchMuzakkiTransparencyData() {
+  try {
+    const { data: mappings } = await supabase
+      .from('mustahik_mapping')
+      .select('*')
+      .order('updated_at', { ascending: false });
+
+    const { data: reports } = await supabase
+      .from('monitoring_reports')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    return { mappings: mappings || [], reports: reports || [] };
+  } catch (err) {
+    console.warn('Error fetching muzakki transparency data:', err);
+    return { mappings: [], reports: [] };
   }
 }
 
