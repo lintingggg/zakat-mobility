@@ -33,30 +33,25 @@ export const WebLayout: React.FC<WebLayoutProps> = ({ children }) => {
   } = useApp();
 
   const pendingCount = evidenceQueue.filter(e => e.status === 'menunggu').length;
-  const displayName = currentUser?.name || (role === 'mustahik' ? 'Bu Faizah' : role === 'amil' ? 'Ustadz Hilman' : 'Bpk. Rahmat');
+  const displayName = currentUser?.name || (role === 'mustahik' ? 'Faizah Elysia' : role === 'amil' ? 'Hilman Ramadhan' : 'Bpk. Rahmat Santoso');
 
   return (
     <div className="min-h-screen bg-[#F8F9FA] text-[#111827] flex flex-col font-sans selection:bg-[#E8F3ED] selection:text-[#1A4331]">
-      {/* 1. Minimalist Sticky Top Bar (Guideline 4: Sapaan "Assalamualaikum, [Nama]" & Notifikasi) */}
+      {/* 1. Minimalist Sticky Top Bar */}
       {isLoggedIn && (
         <header className="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-xs">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
-            {/* Left: Sapaan Minimalis */}
-            <div className="flex items-center gap-3">
+            {/* Left: Nama Lengkap Pengguna Saja */}
+            <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-full bg-[#1A4331] text-white flex items-center justify-center font-bold text-xs tracking-tight shadow-2xs">
-                ZM
+                {displayName.split(' ').map(n => n[0]).slice(0, 2).join('')}
               </div>
               <div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs sm:text-sm font-bold text-[#111827] tracking-tight">
-                    Assalamualaikum, {displayName}
-                  </span>
-                  <span className="pill-verified text-[10px]">
-                    {role === 'mustahik' ? 'Mustahik Binaan' : role === 'amil' ? 'Amil Verifikator' : 'Muzakki'}
-                  </span>
-                </div>
+                <span className="text-xs sm:text-sm font-bold text-[#111827] tracking-tight block">
+                  {displayName}
+                </span>
                 <p className="text-[11px] text-[#6B7280] hidden sm:block">
-                  Zakat Mobility · Kerangka Pemberdayaan 6M BAZNAS
+                  Zakat Mobility · BAZNAS
                 </p>
               </div>
             </div>
