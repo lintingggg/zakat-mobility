@@ -2,18 +2,45 @@
 
 import React from 'react';
 import { useApp } from '@/context/AppContext';
-import { ArrowLeft, CheckCircle2, Check, Clock, Play } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Check, Clock, Play, Lock } from 'lucide-react';
 
 export const MatchingView: React.FC = () => {
   const {
     businessProfile,
     zakatPackage,
     applicationStep,
+    submissionStatus,
     simulateNextStep,
     documents,
     setMustahikTab,
     setCurrent6MStep,
   } = useApp();
+
+  const isApprovedByAmil = submissionStatus === 'disetujui' || applicationStep >= 3;
+
+  if (!isApprovedByAmil) {
+    return (
+      <div className="taste-enter max-w-lg mx-auto my-8">
+        <div className="taste-card bg-white rounded-2xl p-6 sm:p-8 border border-slate-200 text-center space-y-4 shadow-xs">
+          <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto text-slate-500">
+            <Lock className="w-6 h-6" />
+          </div>
+          <div>
+            <h3 className="text-base font-bold text-[#111827]">Tahap 2M: Matching Terkunci</h3>
+            <p className="text-xs text-[#6B7280] mt-1.5 leading-relaxed">
+              Tahap alokasi bantuan modal hanya dapat dibuka setelah profil usaha dan berkas legalitas pada <strong>Tahap 1M: Mapping</strong> lengkap serta disetujui oleh Amil BAZNAS.
+            </p>
+          </div>
+          <button
+            onClick={() => setCurrent6MStep(1)}
+            className="btn-primary text-xs mx-auto"
+          >
+            Buka Tahap 1M: Mapping
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const totalAmount = zakatPackage.reduce((acc, curr) => acc + curr.amount, 0);
 

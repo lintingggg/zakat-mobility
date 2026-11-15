@@ -6,14 +6,15 @@ import {
   FileText, 
   Compass, 
   ArrowRight, 
-  ArrowUpRight,
-  Check,
+  ArrowUpRight, 
+  Check, 
   CheckCircle2, 
   Clock, 
-  ChevronRight,
-  TrendingUp,
-  Sparkles,
-  Award
+  ChevronRight, 
+  TrendingUp, 
+  Sparkles, 
+  Award,
+  Lock
 } from 'lucide-react';
 
 export const MustahikHome: React.FC = () => {
@@ -33,8 +34,19 @@ export const MustahikHome: React.FC = () => {
     isFullyGraduated,
   } = useApp();
 
-  const isDraft = submissionStatus === 'draft' || !businessProfile.businessName || businessProfile.businessName.trim() === '';
-  const isApproved = applicationStep >= 3;
+  const isProfileComplete = Boolean(
+    businessProfile.businessName && businessProfile.businessName.trim() !== '' &&
+    businessProfile.businessType && businessProfile.businessType.trim() !== '' &&
+    businessProfile.duration && businessProfile.duration.trim() !== '' &&
+    businessProfile.monthlyRevenue > 0 &&
+    businessProfile.address && businessProfile.address.trim() !== ''
+  );
+  const isDocumentsComplete = documents.length > 0 && documents.every(d => Boolean(d.filename && d.filename.trim() !== ''));
+
+  const isStage1Approved = submissionStatus === 'disetujui' || applicationStep >= 3;
+  const isStage1Submitted = submissionStatus === 'diajukan';
+  const isDraft = submissionStatus === 'draft' || !isProfileComplete || !isDocumentsComplete;
+  const isApproved = isStage1Approved;
   const isDisbursed = applicationStep === 4;
 
   const verifiedModulesCount = mentoringModules.filter(m => m.status === 'terverifikasi').length;
@@ -45,61 +57,89 @@ export const MustahikHome: React.FC = () => {
 
   // Hitung tahapan 6M yang sedang aktif & menjadi langkah selanjutnya
   let currentActiveStep = 1;
-  if (isDraft) {
+  if (!isStage1Approved) {
+    // Jika belum lolos tahap satu atau belum diverifikasi oleh amil/admin -> Tetap di Tahap 1
     currentActiveStep = 1;
-  } else if (!isApproved && !isDisbursed) {
-    currentActiveStep = 2; // Tahap 1 (Mapping) sudah terisi/diajukan, langkah selanjutnya adalah 2M Matching
+  } else if (!isDisbursed && applicationStep < 4) {
+    // Tahap 1 sudah disetujui, lanjut ke Tahap 2 Matching
+    currentActiveStep = 2;
   } else if (mentoringPercent < 80) {
-    currentActiveStep = 3; // Tahap 2 (Matching) sudah disetujui, langkah selanjutnya 3M Mentoring
+    currentActiveStep = 3;
   } else if (activeChannelsCount < 3) {
-    currentActiveStep = 4; // Tahap 3 (Mentoring) selesai, langkah selanjutnya 4M Market
+    currentActiveStep = 4;
   } else if (recordedMonthsCount < 3) {
-    currentActiveStep = 5; // Tahap 4 (Market) selesai, langkah selanjutnya 5M Monitoring
+    currentActiveStep = 5;
   } else {
-    currentActiveStep = 6; // Tahap 5 selesai, langkah selanjutnya 6M Moving Up
+    currentActiveStep = 6;
   }
 
   const handleOpen6M = (stepNumber: number) => {
+    // Jika belum lolos tahap 1 dan mencoba membuka tahap > 1, arahkan ke tahap 1
+    if (!isStage1Approved && stepNumber > 1) {
+      setCurrent6MStep(1);
+      setMustahikTab('6m');
+      return;
+    }
     setCurrent6MStep(stepNumber);
     setMustahikTab('6m');
   };
 
+  const getStep1Config = () => {
+    if (isStage1Submitted) {
+      return {
+        tag: 'Tahap 1 · Sedang Ditinjau',
+        title: '1M: Mapping (Menunggu Verifikasi Amil)',
+        desc: 'Berkas dan formulir usaha Anda sedang ditinjau oleh Amil BAZNAS. Tahap 2M Matching akan dibuka setelah disetujui.',
+        btnText: 'Lihat Pengajuan 1M',
+      };
+    }
+    if (submissionStatus === 'dibatalkan') {
+      return {
+        tag: 'Pengajuan Dibatalkan',
+        title: '1M: Mapping (Pengajuan Dibatalkan)',
+        desc: 'Pengajuan berkas Anda sebelumnya dibatalkan. Silakan tinjau kembali profil usaha dan ajukan ulang ke Amil BAZNAS.',
+        btnText: 'Ajukan Ulang 1M',
+      };
+    }
+    return {
+      tag: 'Tahap 1 · Belum Lengkap',
+      title: 'Lengkapi 1M: Mapping (Pemetaan Usaha)',
+      desc: 'Lengkapi data usaha dan unggah seluruh berkas persyaratan legalitas agar dapat diverifikasi oleh Amil BAZNAS.',
+      btnText: 'Lengkapi Berkas 1M',
+    };
+  };
+
   const nextStepConfigs = {
-    1: {
-      tag: 'Langkah Awal',
-      title: 'Mulai 1M: Mapping (Pemetaan Usaha)',
-      desc: 'Isi profil usaha, 5 indikator aspek kelayakan, dan unggah berkas persyaratan awal untuk diverifikasi.',
-      btnText: 'Mulai Isi Profil',
-    },
+    1: getStep1Config(),
     2: {
-      tag: 'Langkah Selanjutnya',
+      tag: 'Tahap 2 Terbuka',
       title: 'Lanjutkan ke 2M: Matching (Paket Bantuan Modal)',
       desc: 'Cek alokasi bantuan alat produksi, modal bahan baku, dan pantau proses persetujuan SK BAZNAS.',
-      btnText: 'Lanjutkan ke 2M',
+      btnText: 'Buka Tahap 2M',
     },
     3: {
-      tag: 'Langkah Selanjutnya',
+      tag: 'Tahap 3 Terbuka',
       title: 'Lanjutkan ke 3M: Mentoring (Modul Bisnis)',
       desc: 'Pelajari 6 modul pembukuan & standardisasi usaha serta unggah tugas praktik binaan.',
-      btnText: 'Lanjutkan ke 3M',
+      btnText: 'Buka Tahap 3M',
     },
     4: {
-      tag: 'Langkah Selanjutnya',
+      tag: 'Tahap 4 Terbuka',
       title: 'Lanjutkan ke 4M: Market (Jejaring Pasar)',
       desc: 'Buka dan daftarkan minimal 3 saluran penjualan offline maupun online (toko lokal, medsos, reseller).',
-      btnText: 'Lanjutkan ke 4M',
+      btnText: 'Buka Tahap 4M',
     },
     5: {
-      tag: 'Langkah Selanjutnya',
+      tag: 'Tahap 5 Terbuka',
       title: 'Lanjutkan ke 5M: Monitoring (Laporan Omzet)',
       desc: 'Catat laporan keuangan bulanan dan lampirkan bukti nota transaksi secara tertib.',
-      btnText: 'Lanjutkan ke 5M',
+      btnText: 'Buka Tahap 5M',
     },
     6: {
-      tag: 'Langkah Akhir',
+      tag: 'Tahap Akhir',
       title: 'Lanjutkan ke 6M: Moving Up (Kemandirian)',
       desc: 'Pantau pemenuhan 6 indikator kemandirian ekonomi untuk kelulusan menjadi muzakki berdaya.',
-      btnText: 'Lanjutkan ke 6M',
+      btnText: 'Buka Tahap 6M',
     },
   };
 
@@ -251,60 +291,96 @@ export const MustahikHome: React.FC = () => {
             { 
               step: 1, 
               title: '1M: Mapping', 
-              desc: 'Pemetaan profil & skor', 
-              status: isDraft ? 'Belum Diisi' : 'Selesai' 
+              desc: 'Pemetaan profil & berkas', 
+              status: isStage1Approved 
+                ? 'Selesai' 
+                : isStage1Submitted 
+                ? 'Menunggu Verifikasi' 
+                : 'Belum Lengkap' 
             },
             { 
               step: 2, 
               title: '2M: Matching', 
               desc: 'Paket modal & alat', 
-              status: isDraft ? 'Terkunci' : isApproved ? 'Selesai' : 'Aktif' 
+              status: !isStage1Approved 
+                ? 'Terkunci' 
+                : isDisbursed 
+                ? 'Selesai' 
+                : 'Aktif' 
             },
             { 
               step: 3, 
               title: '3M: Mentoring', 
               desc: '6 Modul pembukuan', 
-              status: isDraft || !isApproved ? 'Terkunci' : mentoringPercent >= 80 ? 'Selesai' : 'Aktif' 
+              status: !isStage1Approved || !isDisbursed 
+                ? 'Terkunci' 
+                : mentoringPercent >= 80 
+                ? 'Selesai' 
+                : 'Aktif' 
             },
             { 
               step: 4, 
               title: '4M: Market', 
               desc: 'Toko & jejaring pasar', 
-              status: isDraft || !isApproved ? 'Terkunci' : activeChannelsCount >= 3 ? 'Selesai' : mentoringPercent >= 80 ? 'Aktif' : 'Menunggu' 
+              status: !isStage1Approved || !isDisbursed || mentoringPercent < 80 
+                ? 'Terkunci' 
+                : activeChannelsCount >= 3 
+                ? 'Selesai' 
+                : 'Aktif' 
             },
             { 
               step: 5, 
               title: '5M: Monitoring', 
               desc: 'Laporan omzet bulanan', 
-              status: isDraft || !isApproved ? 'Terkunci' : recordedMonthsCount >= 3 ? 'Selesai' : activeChannelsCount >= 3 ? 'Rutin' : 'Menunggu' 
+              status: !isStage1Approved || !isDisbursed || mentoringPercent < 80 || activeChannelsCount < 3 
+                ? 'Terkunci' 
+                : recordedMonthsCount >= 3 
+                ? 'Selesai' 
+                : 'Aktif' 
             },
             { 
               step: 6, 
               title: '6M: Moving Up', 
               desc: `${metIndicators}/6 Tolok ukur mandiri`, 
-              status: isDraft || !isApproved ? 'Terkunci' : isFullyGraduated ? 'Lulus' : 'Target' 
+              status: !isStage1Approved || !isDisbursed || recordedMonthsCount < 3 
+                ? 'Terkunci' 
+                : isFullyGraduated 
+                ? 'Lulus' 
+                : 'Target' 
             },
           ].map(m => {
-            const isCardActive = m.status === 'Aktif' || m.status === 'Rutin';
+            const isCardActive = m.status === 'Aktif';
             const isCardDone = m.status === 'Selesai' || m.status === 'Lulus';
-            const isCardLocked = m.status === 'Terkunci' || m.status === 'Menunggu' || m.status === 'Belum Diisi';
+            const isCardWaiting = m.status === 'Menunggu Verifikasi';
+            const isCardIncomplete = m.status === 'Belum Lengkap';
+            const isCardLocked = m.status === 'Terkunci';
 
             return (
               <button
                 key={m.step}
                 onClick={() => handleOpen6M(m.step)}
-                className={`taste-card text-left p-3.5 rounded-xl border transition-all flex flex-col justify-between min-h-[110px] ${
+                disabled={isCardLocked}
+                className={`taste-card text-left p-3.5 rounded-xl border transition-all flex flex-col justify-between min-h-[115px] ${
                   isCardActive
                     ? 'bg-white border-[#1A4331] ring-1 ring-[#1A4331]/10 shadow-xs'
                     : isCardDone
-                    ? 'bg-white border-slate-200 hover:border-slate-300'
-                    : 'bg-slate-50/60 border-slate-200/60 opacity-60 hover:opacity-85'
+                    ? 'bg-white border-slate-200 hover:border-slate-300 shadow-2xs'
+                    : isCardWaiting
+                    ? 'bg-white border-slate-200 hover:border-slate-300 shadow-2xs'
+                    : isCardIncomplete
+                    ? 'bg-white border-slate-200 hover:border-slate-300 shadow-2xs'
+                    : 'bg-slate-50/70 border-slate-200/60 opacity-60 cursor-not-allowed'
                 }`}
               >
                 <div>
-                  <span className="text-[10px] font-bold text-[#1A4331] block font-mono">
-                    Tahap {m.step}
-                  </span>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-bold text-[#1A4331] block font-mono">
+                      Tahap {m.step}
+                    </span>
+                    {isCardLocked && (
+                      <Lock className="w-3 h-3 text-slate-400" />
+                    )}
+                  </div>
                   <span className="text-xs font-bold text-[#111827] block mt-0.5">
                     {m.title}
                   </span>
@@ -317,20 +393,32 @@ export const MustahikHome: React.FC = () => {
                   {isCardDone ? (
                     <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#1A4331]">
                       <Check className="w-3 h-3 stroke-[2.5]" />
-                      <span>Selesai</span>
+                      <span>{m.status === 'Lulus' ? 'Mandiri (Lulus)' : 'Selesai'}</span>
                     </span>
                   ) : isCardActive ? (
                     <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-[#111827]">
                       <span className="w-1.5 h-1.5 rounded-full bg-[#1A4331] animate-pulse" />
                       <span>Sedang Berjalan</span>
                     </span>
+                  ) : isCardWaiting ? (
+                    <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-slate-600">
+                      <Clock className="w-3 h-3 text-slate-400" />
+                      <span>Menunggu Verifikasi</span>
+                    </span>
+                  ) : isCardIncomplete ? (
+                    <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-slate-500">
+                      <span className="w-1.5 h-1.5 rounded-full bg-slate-400" />
+                      <span>Belum Lengkap</span>
+                    </span>
                   ) : m.status === 'Target' ? (
-                    <span className="text-[11px] font-medium text-slate-500">
-                      Target Akhir
+                    <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-slate-500">
+                      <Award className="w-3 h-3 text-slate-400" />
+                      <span>Target Akhir</span>
                     </span>
                   ) : (
-                    <span className="text-[11px] font-medium text-slate-400">
-                      Terkunci
+                    <span className="inline-flex items-center gap-1 text-[11px] font-medium text-slate-400">
+                      <Lock className="w-3 h-3 text-slate-400" />
+                      <span>Terkunci</span>
                     </span>
                   )}
                 </div>

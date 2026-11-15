@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { useApp } from '@/context/AppContext';
-import { ChevronDown, Check } from 'lucide-react';
+import { ChevronDown, Check, Lock } from 'lucide-react';
 import { MappingView } from './MappingView';
 import { MatchingView } from './MatchingView';
 import { MentoringView } from './MentoringView';
@@ -11,9 +11,18 @@ import { MonitoringView } from './MonitoringView';
 import { MovingUpView } from './MovingUpView';
 
 export const Program6MView: React.FC = () => {
-  const { current6MStep, setCurrent6MStep } = useApp();
+  const { current6MStep, setCurrent6MStep, submissionStatus, applicationStep } = useApp();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const isApprovedByAmil = submissionStatus === 'disetujui' || applicationStep >= 3;
+
+  // Jika belum disetujui Amil, kunci agar selalu kembali ke Tahap 1
+  useEffect(() => {
+    if (!isApprovedByAmil && current6MStep > 1) {
+      setCurrent6MStep(1);
+    }
+  }, [isApprovedByAmil, current6MStep, setCurrent6MStep]);
 
   const steps = [
     { num: 1, label: '1M: Mapping', desc: 'Pemetaan Usaha, Skor & Dokumen' },
@@ -87,23 +96,34 @@ export const Program6MView: React.FC = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-1 pt-1">
               {steps.map(s => {
                 const isSelected = s.num === current6MStep;
+                const isStepLocked = !isApprovedByAmil && s.num > 1;
+
                 return (
                   <button
                     key={s.num}
                     type="button"
+                    disabled={isStepLocked}
                     onClick={() => {
-                      setCurrent6MStep(s.num);
-                      setIsOpen(false);
+                      if (!isStepLocked) {
+                        setCurrent6MStep(s.num);
+                        setIsOpen(false);
+                      }
                     }}
                     className={`w-full text-left p-2.5 rounded-xl transition-all flex items-center justify-between gap-2.5 ${
                       isSelected
                         ? 'bg-[#1A4331] text-white shadow-2xs font-semibold'
+                        : isStepLocked
+                        ? 'opacity-50 cursor-not-allowed bg-slate-50 text-slate-400'
                         : 'hover:bg-[#F8F9FA] text-[#111827]'
                     }`}
                   >
                     <div className="flex items-center gap-2.5 min-w-0">
                       <span className={`w-6 h-6 rounded-lg text-[10px] font-mono font-bold flex items-center justify-center shrink-0 ${
-                        isSelected ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'
+                        isSelected 
+                          ? 'bg-white/20 text-white' 
+                          : isStepLocked 
+                          ? 'bg-slate-200 text-slate-400' 
+                          : 'bg-slate-100 text-slate-700'
                       }`}>
                         {s.num}M
                       </span>
@@ -111,12 +131,18 @@ export const Program6MView: React.FC = () => {
                         <span className="text-xs font-bold block truncate">
                           {s.label}
                         </span>
-                        <span className={`text-[10px] block truncate ${isSelected ? 'text-white/80' : 'text-[#6B7280]'}`}>
-                          {s.desc}
+                        <span className={`text-[10px] block truncate ${
+                          isSelected ? 'text-white/80' : isStepLocked ? 'text-slate-400' : 'text-[#6B7280]'
+                        }`}>
+                          {isStepLocked ? 'Terkunci · Perlu Verifikasi 1M' : s.desc}
                         </span>
                       </div>
                     </div>
-                    {isSelected && <Check className="w-4 h-4 shrink-0 text-emerald-300" />}
+                    {isSelected ? (
+                      <Check className="w-4 h-4 shrink-0 text-emerald-300" />
+                    ) : isStepLocked ? (
+                      <Lock className="w-3.5 h-3.5 shrink-0 text-slate-400" />
+                    ) : null}
                   </button>
                 );
               })}
