@@ -43,6 +43,7 @@ interface AppContextType {
   updateAspects: (aspectKey: keyof BusinessProfile['aspects'], value: string) => void;
   documents: DocumentItem[];
   uploadDocument: (id: string, filename: string) => void;
+  deleteDocument: (id: string) => void;
 
   // Matching
   zakatPackage: ZakatPackageItem[];
@@ -436,6 +437,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     ]);
   };
 
+  const deleteDocument = (id: string) => {
+    setDocuments(prev =>
+      prev.map(d => (d.id === id ? { ...d, filename: '', status: 'belum_diunggah' } : d))
+    );
+    setEvidenceQueue(prev => prev.filter(e => !e.title.toLowerCase().includes(id.toLowerCase())));
+  };
+
   const simulateNextStep = () => {
     setApplicationStep(prev => (prev < 4 ? prev + 1 : 1));
   };
@@ -799,6 +807,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         updateAspects,
         documents,
         uploadDocument,
+        deleteDocument,
         zakatPackage,
         applicationStep,
         simulateNextStep,
