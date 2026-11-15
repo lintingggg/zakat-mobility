@@ -271,6 +271,22 @@ export async function saveDocumentsMetadata(userEmail: string, documents: Docume
           updated_at: new Date().toISOString(),
         })
         .eq('id', mapping.id);
+    } else {
+      await supabase
+        .from('mustahik_mapping')
+        .insert([{
+          user_email: cleanEmail,
+          nama_usaha: 'Usaha Binaan',
+          kategori_usaha: 'Z-Preneur',
+          omzet_bulanan: 0,
+          kebutuhan_modal: 3500000,
+          skor_potensi: 45,
+          skor_status: 'Perlu Pendampingan',
+          program_rekomendasi: 'Z-Preneur Pelatihan Usaha',
+          status_pengajuan: 'draft',
+          catatan_amil: jsonStr,
+          updated_at: new Date().toISOString(),
+        }]);
     }
 
     // 2. Update verification_queue
@@ -288,6 +304,19 @@ export async function saveDocumentsMetadata(userEmail: string, documents: Docume
           updated_at: new Date().toISOString(),
         })
         .eq('id', queue.id);
+    } else {
+      await supabase
+        .from('verification_queue')
+        .insert([{
+          mustahik_name: 'Pemohon Zakat',
+          mustahik_email: cleanEmail,
+          program_name: 'Z-Preneur Pelatihan Usaha',
+          nominal_bantuan: 3500000,
+          skor: 45,
+          status: 'menunggu',
+          catatan_amil: jsonStr,
+          updated_at: new Date().toISOString(),
+        }]);
     }
 
     return true;

@@ -295,11 +295,27 @@ export const MappingView: React.FC = () => {
                       <p className="text-[11px] text-[#6B7280] mt-0.5">{doc.notes}</p>
                       
                       {hasFile && (
-                        <div className="mt-1.5 flex items-center gap-1.5">
-                          <span className="inline-flex items-center gap-1 text-[11px] font-mono text-[#1A4331] bg-white px-2.5 py-0.5 rounded-md border border-slate-200 truncate max-w-xs">
-                            <FileText className="w-3 h-3 text-[#277A4D] shrink-0" />
-                            <span className="truncate">{doc.filename}</span>
-                          </span>
+                        <div className="mt-2.5 flex items-center gap-2.5">
+                          {doc.fileUrl && !doc.filename?.toLowerCase().endsWith('.pdf') ? (
+                            <img 
+                              src={doc.fileUrl} 
+                              alt={doc.name} 
+                              className="w-11 h-11 object-cover rounded-xl border border-slate-300 shadow-2xs shrink-0 bg-slate-100" 
+                            />
+                          ) : (
+                            <div className="w-11 h-11 rounded-xl bg-slate-200/80 text-slate-600 flex items-center justify-center shrink-0 border border-slate-300">
+                              <FileText className="w-5 h-5 text-red-600" />
+                            </div>
+                          )}
+                          <div className="min-w-0">
+                            <span className="inline-flex items-center gap-1 text-[11px] font-mono text-[#1A4331] bg-white px-2 py-0.5 rounded-md border border-slate-200 truncate max-w-[200px] sm:max-w-xs block">
+                              <span className="truncate">{doc.filename}</span>
+                            </span>
+                            <span className="text-[10px] text-emerald-700 font-semibold mt-0.5 block flex items-center gap-1">
+                              <CheckCircle2 className="w-2.5 h-2.5 text-emerald-600 shrink-0" />
+                              <span>Tersimpan di Database</span>
+                            </span>
+                          </div>
                         </div>
                       )}
                     </div>
