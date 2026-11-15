@@ -427,18 +427,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setApplicants(prev =>
       prev.map(a => (a.id === id ? { ...a, status } : a))
     );
-    // Sinkronkan status pengajuan mustahik jika nama/id cocok dengan pengguna saat ini
-    const currentName = currentUser?.name?.toLowerCase() || '';
-    if (id.toLowerCase().includes(currentName) || currentName.includes(id.toLowerCase())) {
-      if (status === 'Disetujui') {
-        setApplicationStep(3); // Disetujui
-        setSubmissionStatus('disetujui');
-      } else if (status === 'Didampingi') {
-        setApplicationStep(2); // Diverifikasi amil / didampingi
-      } else if (status === 'Ditolak') {
-        setApplicationStep(1);
-        setSubmissionStatus('ditolak');
-      }
+    // Sinkronkan status pengajuan mustahik
+    if (status === 'Disetujui') {
+      setApplicationStep(3); // Disetujui
+      setSubmissionStatus('disetujui');
+    } else if (status === 'Didampingi') {
+      setApplicationStep(2); // Diverifikasi amil / didampingi
+    } else if (status === 'Ditolak') {
+      setApplicationStep(1);
+      setSubmissionStatus('ditolak');
     }
 
     // Push update to Supabase

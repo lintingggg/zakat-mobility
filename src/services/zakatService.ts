@@ -251,6 +251,15 @@ export async function updateQueueStatus(
       .single();
 
     if (error) throw error;
+
+    // Sinkronkan juga ke tabel mustahik_mapping
+    if (data?.mustahik_email) {
+      await supabase
+        .from('mustahik_mapping')
+        .update({ status_pengajuan: newStatus, updated_at: new Date().toISOString() })
+        .eq('user_email', data.mustahik_email);
+    }
+
     return data;
   } catch (err) {
     console.error('Error updating queue status:', err);
