@@ -174,7 +174,7 @@ export const MustahikHome: React.FC = () => {
               handleOpen6M(current6MStep < 6 ? current6MStep + 1 : 6);
             }
           }}
-          className="btn-primary text-xs shrink-0 self-start sm:self-center"
+          className="btn-primary text-xs shrink-0 self-end sm:self-center"
         >
           <span>{isDraft ? 'Mulai Isi Profil' : 'Lanjutkan'}</span>
           <ArrowRight className="w-3.5 h-3.5" />
