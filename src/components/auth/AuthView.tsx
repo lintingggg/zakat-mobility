@@ -14,24 +14,14 @@ export const AuthView: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [authNotice, setAuthNotice] = useState<string | null>(null);
   
-  const [fullName, setFullName] = useState('Faizah Elysia');
-  const [emailOrPhone, setEmailOrPhone] = useState('faizah@contoh.id');
-  const [password, setPassword] = useState('123456');
+  const [fullName, setFullName] = useState('');
+  const [emailOrPhone, setEmailOrPhone] = useState('');
+  const [password, setPassword] = useState('');
   const [agreed, setAgreed] = useState(true);
 
   const handleRoleChange = (role: UserRole) => {
     setSelectedRole(role);
     setAuthNotice(null);
-    if (role === 'mustahik') {
-      setFullName('Faizah Elysia');
-      setEmailOrPhone('faizah@contoh.id');
-    } else if (role === 'amil') {
-      setFullName('Hilman Ramadhan');
-      setEmailOrPhone('hilman@baznas.go.id');
-    } else {
-      setFullName('Bpk. Rahmat Santoso');
-      setEmailOrPhone('rahmat@muzakki.id');
-    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -41,27 +31,44 @@ export const AuthView: React.FC = () => {
 
     try {
       if (mode === 'daftar') {
+        if (!fullName.trim() || !emailOrPhone.trim() || !password.trim()) {
+          setAuthNotice('Mohon lengkapi nama, email, dan kata sandi.');
+          setIsLoading(false);
+          return;
+        }
         // Simpan pendaftaran ke Supabase
         await registerNewUser({
           id: emailOrPhone.trim().toLowerCase(),
           email: emailOrPhone.trim().toLowerCase(),
-          name: fullName,
+          name: fullName.trim(),
           password: password,
           role: selectedRole,
         });
-        login(selectedRole, emailOrPhone.trim().toLowerCase(), fullName);
+        login(selectedRole, emailOrPhone.trim().toLowerCase(), fullName.trim());
       } else {
+        if (!emailOrPhone.trim() || !password.trim()) {
+          setAuthNotice('Mohon masukkan email dan kata sandi.');
+          setIsLoading(false);
+          return;
+        }
         // Validasi login ke Supabase
         const dbUser = await authenticateUser(emailOrPhone, password, selectedRole);
         if (dbUser) {
+          if (dbUser.password && dbUser.password !== password) {
+            setAuthNotice('Kata sandi salah. Silakan periksa kembali.');
+            setIsLoading(false);
+            return;
+          }
           login(dbUser.role, dbUser.email, dbUser.name);
         } else {
-          login(selectedRole, emailOrPhone, fullName);
+          setAuthNotice('Akun belum terdaftar di database Supabase. Silakan klik tab "Daftar" untuk membuat akun baru.');
+          setIsLoading(false);
+          return;
         }
       }
     } catch (err) {
-      console.warn('Auth error, fallback to local session:', err);
-      login(selectedRole, emailOrPhone, fullName);
+      console.warn('Auth error:', err);
+      setAuthNotice('Terjadi kendala koneksi ke database. Silakan coba lagi.');
     } finally {
       setIsLoading(false);
     }
@@ -124,10 +131,10 @@ export const AuthView: React.FC = () => {
         </div>
 
         {/* Tab Masuk / Daftar */}
-        <div className="grid grid-cols-2 bg-slate-100 p-1 rounded-xl mb-5 border border-slate-200">
+        <div className="grid grid-cols-2 bg-slate-100 p-1 rounded-xl mb-4 border border-slate-200">
           <button
             type="button"
-            onClick={() => setMode('masuk')}
+            onClick={() => { setMode('masuk'); setAuthNotice(null); }}
             className={`taste-btn py-1.5 text-xs font-bold rounded-lg transition-all ${
               mode === 'masuk' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
             }`}
@@ -136,7 +143,7 @@ export const AuthView: React.FC = () => {
           </button>
           <button
             type="button"
-            onClick={() => setMode('daftar')}
+            onClick={() => { setMode('daftar'); setAuthNotice(null); }}
             className={`taste-btn py-1.5 text-xs font-bold rounded-lg transition-all ${
               mode === 'daftar' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
             }`}
@@ -144,6 +151,12 @@ export const AuthView: React.FC = () => {
             Daftar
           </button>
         </div>
+
+        {authNotice && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-800 text-xs rounded-xl flex items-start gap-2">
+            <span className="font-semibold">{authNotice}</span>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Masuk sebagai: Mustahik, Amil, Muzakki */}
@@ -217,7 +230,7 @@ export const AuthView: React.FC = () => {
               type="text"
               value={emailOrPhone}
               onChange={e => setEmailOrPhone(e.target.value)}
-              placeholder="faizah@contoh.id"
+              placeholder="contoh: nama@email.com"
               className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:border-emerald-700"
               required
             />
@@ -231,6 +244,7 @@ export const AuthView: React.FC = () => {
               type="password"
               value={password}
               onChange={e => setPassword(e.target.value)}
+              placeholder="Masukkan kata sandi"
               className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:border-emerald-700"
               required
             />

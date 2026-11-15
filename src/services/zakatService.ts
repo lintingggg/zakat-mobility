@@ -235,7 +235,7 @@ export async function fetchVerificationQueue(): Promise<VerificationQueueDB[]> {
 
 export async function updateQueueStatus(
   queueId: string,
-  newStatus: 'disetujui' | 'ditolak' | 'dibatalkan',
+  newStatus: 'menunggu' | 'disetujui' | 'ditolak' | 'dibatalkan',
   notes?: string
 ) {
   try {

@@ -1,6 +1,7 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { supabase } from '@/lib/supabase';
 import {
   UserRole,
   BusinessProfile,
@@ -253,6 +254,104 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return Math.min(score, 95);
   };
 
+  // Sinkronisasi data real-time dengan Supabase
+  const syncDataFromCloud = useCallback(async () => {
+    try {
+      // 1. Fetch Mapping jika Mustahik
+      if (currentUser?.email) {
+        const { data: mappingData } = await supabase
+          .from('mustahik_mapping')
+          .select('*')
+          .eq('user_email', currentUser.email.toLowerCase())
+          .order('updated_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (mappingData) {
+          setBusinessProfile(prev => ({
+            ...prev,
+            businessName: mappingData.nama_usaha || prev.businessName,
+            businessType: mappingData.kategori_usaha || prev.businessType,
+            monthlyRevenue: Number(mappingData.omzet_bulanan) || prev.monthlyRevenue,
+            calculatedScore: mappingData.skor_potensi || prev.calculatedScore,
+          }));
+          if (mappingData.status_pengajuan) {
+            setSubmissionStatus(mappingData.status_pengajuan);
+          }
+        }
+      }
+
+      // 2. Fetch Antrean Verifikasi untuk Amil
+      const { data: queueData } = await supabase
+        .from('verification_queue')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (queueData && queueData.length > 0) {
+        const cloudApplicants: ApplicantItem[] = queueData.map(q => {
+          const isAppApproved = q.status === 'disetujui';
+          const isAppRejected = q.status === 'ditolak';
+          const isAppWithdrawn = q.status === 'dibatalkan';
+
+          return {
+            id: q.id || `q-${Math.random()}`,
+            name: q.mustahik_name,
+            businessName: q.program_name || 'Usaha Binaan',
+            businessType: 'Bantuan Zakat Produktif',
+            location: 'Poncokusumo',
+            documentsStatus: isAppWithdrawn ? 'Dibatalkan pemohon' : 'Dokumen berkas terunggah',
+            plannedUsage: `Bantuan Modal Rp${Number(q.nominal_bantuan || 3500000).toLocaleString('id-ID')}`,
+            potentialScore: q.skor || 75,
+            status: isAppApproved ? 'Disetujui' : isAppRejected ? 'Ditolak' : isAppWithdrawn ? 'Ditolak' : 'Baru',
+            submissionDate: q.created_at ? new Date(q.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }) : 'Hari ini',
+          };
+        });
+
+        setApplicants(prev => {
+          const map = new Map<string, ApplicantItem>();
+          cloudApplicants.forEach(a => map.set(a.name.toLowerCase(), a));
+          defaultApplicants.forEach(a => {
+            if (!map.has(a.name.toLowerCase())) {
+              map.set(a.name.toLowerCase(), a);
+            }
+          });
+          return Array.from(map.values());
+        });
+      }
+    } catch (err) {
+      console.warn('Error syncing data from Supabase:', err);
+    }
+  }, [currentUser?.email]);
+
+  useEffect(() => {
+    if (isLoggedIn) {
+      syncDataFromCloud();
+
+      // Listen to real-time changes
+      const channel = supabase
+        .channel('schema-db-changes')
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'verification_queue' },
+          () => {
+            syncDataFromCloud();
+          }
+        )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'mustahik_mapping' },
+          () => {
+            syncDataFromCloud();
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    }
+  }, [isLoggedIn, syncDataFromCloud]);
+
   const updateBusinessProfile = (updates: Partial<BusinessProfile>) => {
     setBusinessProfile(prev => {
       const next = { ...prev, ...updates };
@@ -410,19 +509,30 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
-  const updateApplicantStatus = (id: string, status: 'Baru' | 'Disetujui' | 'Didampingi' | 'Ditolak') => {
+  const updateApplicantStatus = async (id: string, status: 'Baru' | 'Disetujui' | 'Didampingi' | 'Ditolak') => {
     setApplicants(prev =>
       prev.map(a => (a.id === id ? { ...a, status } : a))
     );
     // If it's Faizah, synchronize with Mustahik matching step
-    if (id === 'app-faizah') {
+    if (id === 'app-faizah' || id.includes('faizah')) {
       if (status === 'Disetujui') {
         setApplicationStep(3); // Disetujui
+        setSubmissionStatus('disetujui');
       } else if (status === 'Didampingi') {
         setApplicationStep(2); // Diverifikasi amil / didampingi
       } else if (status === 'Ditolak') {
         setApplicationStep(1);
+        setSubmissionStatus('ditolak');
       }
+    }
+
+    // Push update to Supabase
+    try {
+      const { updateQueueStatus } = await import('@/services/zakatService');
+      const dbStatus = status === 'Disetujui' ? 'disetujui' : status === 'Ditolak' ? 'ditolak' : 'menunggu';
+      await updateQueueStatus(id, dbStatus);
+    } catch (e) {
+      console.warn('Queue update to Supabase:', e);
     }
   };
 
