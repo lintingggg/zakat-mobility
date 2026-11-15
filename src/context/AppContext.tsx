@@ -82,24 +82,7 @@ interface AppContextType {
   setIsMobileFrame: (val: boolean) => void;
 }
 
-const defaultProfile: BusinessProfile = {
-  name: 'Faizah Elysia',
-  businessName: 'Gerit Jagung Bu Faizah',
-  businessType: 'Olahan jagung (gerit)',
-  duration: '3 tahun',
-  monthlyRevenue: 1800000,
-  address: 'Desa Pandansari, Poncokusumo, Kab. Malang',
-  aspects: {
-    experienceYears: '3 sampai 5 tahun',
-    trainingsAttended: '2 sampai 3 kali',
-    premisesStatus: 'Menumpang di rumah',
-    regularCustomers: '6 sampai 20',
-    networkMembership: 'Kelompok tidak aktif',
-  },
-  calculatedScore: 47,
-};
-
-const emptyBusinessProfile = (name: string): BusinessProfile => ({
+const emptyBusinessProfile = (name: string = ''): BusinessProfile => ({
   name,
   businessName: '',
   businessType: '',
@@ -113,7 +96,7 @@ const emptyBusinessProfile = (name: string): BusinessProfile => ({
     regularCustomers: 'Kurang dari 5',
     networkMembership: 'Tidak ada',
   },
-  calculatedScore: 30,
+  calculatedScore: 0,
 });
 
 const emptyDocuments: DocumentItem[] = [
@@ -140,123 +123,11 @@ const cleanChannels: MarketChannel[] = [
   { id: 'c4', name: 'Marketplace', description: 'Toko online di platform digital populer', status: 'belum_diunggah' },
 ];
 
-const defaultDocuments: DocumentItem[] = [
-  { id: 'ktp', name: 'KTP', filename: 'bukti_ktp.jpg', status: 'terverifikasi', notes: 'Foto KTP jelas dan tidak terpotong' },
-  { id: 'kk', name: 'Kartu Keluarga', filename: 'bukti_kk.jpg', status: 'terverifikasi', notes: 'Untuk memverifikasi anggota keluarga' },
-  { id: 'sktm', name: 'SKTM / bukti DTKS', filename: 'bukti_dtks.jpg', status: 'menunggu', notes: 'Surat keterangan dari desa atau kelurahan' },
-  { id: 'foto', name: 'Foto usaha dan lokasi', filename: 'bukti_foto.jpg', status: 'menunggu', notes: 'Minimal 2 foto: tempat produksi dan produk' },
-];
-
 const defaultPackage: ZakatPackageItem[] = [
   { category: 'Pendampingan usaha', amount: 700000 },
   { category: 'Modal kerja', amount: 3000000 },
   { category: 'Peralatan produksi', amount: 3000000 },
   { category: 'Penguatan jaringan', amount: 300000 },
-];
-
-const defaultModules: MentoringModule[] = [
-  { id: 'm0', title: 'Pengelolaan keuangan', description: 'Kuis modul dan tugas praktik (contoh: foto pembukuan)', status: 'terverifikasi', filename: 'bukti_m0.jpg' },
-  { id: 'm1', title: 'Kualitas produk', description: 'Kuis modul dan tugas praktik (standar mutu pengolahan)', status: 'terverifikasi', filename: 'bukti_m1.jpg' },
-  { id: 'm2', title: 'Pengemasan', description: 'Kuis modul dan tugas praktik (kemasan higienis tahan lama)', status: 'terverifikasi', filename: 'bukti_m2.jpg' },
-  { id: 'm3', title: 'Branding', description: 'Kuis modul dan tugas praktik (label merk dan identitas)', status: 'belum_diunggah' },
-  { id: 'm4', title: 'Legalitas usaha', description: 'Kuis modul dan tugas praktik (NIB & P-IRT dasar)', status: 'belum_diunggah' },
-  { id: 'm5', title: 'Pemasaran digital', description: 'Kuis modul dan tugas praktik (katalog WhatsApp/Medsos)', status: 'belum_diunggah' },
-];
-
-const defaultChannels: MarketChannel[] = [
-  { id: 'c0', name: 'Toko lokal', description: 'Tangkapan layar akun atau foto toko, atau bukti transaksi pertama', status: 'terverifikasi', filename: 'bukti_c0.jpg' },
-  { id: 'c1', name: 'Media sosial', description: 'Tangkapan layar akun medsos (Instagram/WhatsApp Business)', status: 'terverifikasi', filename: 'bukti_c1.jpg' },
-  { id: 'c2', name: 'Reseller', description: 'Daftar mitra agen/reseller warung terdekat', status: 'belum_diunggah' },
-  { id: 'c3', name: 'Komunitas', description: 'Jaringan grup pengajian/arisan/koperasi tani', status: 'belum_diunggah' },
-  { id: 'c4', name: 'Marketplace', description: 'Toko online di platform digital populer', status: 'belum_diunggah' },
-];
-
-const defaultReports: MonthlyReport[] = [
-  { id: 'rep-mei', month: 'Mei', year: 2026, revenue: 3000000, expenses: 1400000, netIncome: 1600000, employeeCount: 1, status: 'terverifikasi' },
-  { id: 'rep-jun', month: 'Jun', year: 2026, revenue: 3720000, expenses: 1720000, netIncome: 2000000, employeeCount: 1, status: 'terverifikasi' },
-  { id: 'rep-jul', month: 'Jul', year: 2026, revenue: 4200000, expenses: 2200000, netIncome: 2000000, employeeCount: 1, receiptFilename: 'bukti_nota.jpg', status: 'menunggu' },
-];
-
-const defaultApplicants: ApplicantItem[] = [
-  {
-    id: 'app-faizah',
-    name: 'Faizah Elysia',
-    businessName: 'Gerit Jagung Bu Faizah',
-    businessType: 'Gerit jagung',
-    location: 'Poncokusumo',
-    documentsStatus: 'Dokumen 4/4 lengkap',
-    plannedUsage: 'Rencana: Mesin pipil jagung',
-    potentialScore: 47,
-    status: 'Disetujui',
-    submissionDate: '12 Nov 2026',
-  },
-  {
-    id: 'app-dimas',
-    name: 'Dimas Prakoso',
-    businessName: 'Keripik Renyah Mas Dimas',
-    businessType: 'Keripik singkong',
-    location: 'Dampit',
-    documentsStatus: 'Dokumen 4/4 lengkap',
-    plannedUsage: 'Rencana: Oven dan kemasan',
-    potentialScore: 72,
-    status: 'Baru',
-    submissionDate: '13 Nov 2026',
-  },
-  {
-    id: 'app-siti',
-    name: 'Siti Aminah',
-    businessName: 'Kopi Robusta Mbak Siti',
-    businessType: 'Kopi bubuk',
-    location: 'Dampit',
-    documentsStatus: 'Dokumen 4/4 lengkap',
-    plannedUsage: 'Rencana: Mesin penggiling',
-    potentialScore: 81,
-    status: 'Baru',
-    submissionDate: '14 Nov 2026',
-  },
-];
-
-const defaultEvidence: EvidenceItem[] = [
-  {
-    id: 'ev-1',
-    applicantName: 'Faizah E.',
-    title: 'SKTM / bukti DTKS',
-    filename: 'bukti_dtks.jpg',
-    type: 'dokumen',
-    description: 'Surat keterangan tidak mampu kelurahan Pandansari',
-    status: 'menunggu',
-    submittedAt: '12 Nov 2026',
-  },
-  {
-    id: 'ev-2',
-    applicantName: 'Faizah E.',
-    title: 'Foto usaha dan lokasi',
-    filename: 'bukti_foto.jpg',
-    type: 'dokumen',
-    description: '2 foto dapur pengolahan dan rak penyimpanan jagung',
-    status: 'menunggu',
-    submittedAt: '12 Nov 2026',
-  },
-  {
-    id: 'ev-3',
-    applicantName: 'Faizah E.',
-    title: 'Bukti transaksi laporan',
-    filename: 'bukti_nota.jpg',
-    type: 'laporan',
-    description: 'Foto nota belanja bahan jagung dan kwitansi penjualan',
-    status: 'menunggu',
-    submittedAt: '14 Nov 2026',
-  },
-  {
-    id: 'ev-4',
-    applicantName: 'Faizah E.',
-    title: 'Laporan Finansial Jul',
-    filename: 'laporan_jul.pdf',
-    type: 'laporan',
-    description: 'Omzet Rp4.200.000 · Biaya Rp2.200.000 · nota terlampir',
-    status: 'menunggu',
-    submittedAt: '14 Nov 2026',
-  },
 ];
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -268,22 +139,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [current6MStep, setCurrent6MStep] = useState<number>(1); // Start from 1M (Mapping)
   const [amilTab, setAmilTab] = useState<'dasbor' | 'pengajuan' | 'verifikasi' | 'akun'>('dasbor');
 
-  const [businessProfile, setBusinessProfile] = useState<BusinessProfile>(defaultProfile);
-  const [currentUser, setCurrentUser] = useState<{ name: string; email: string; role: UserRole } | null>({
-    name: 'Faizah Elysia',
-    email: 'faizah@contoh.id',
-    role: 'mustahik',
-  });
-  const [submissionStatus, setSubmissionStatus] = useState<'draft' | 'diajukan' | 'disetujui' | 'ditolak' | 'dibatalkan'>('diajukan');
-  const [documents, setDocuments] = useState<DocumentItem[]>(defaultDocuments);
+  const [businessProfile, setBusinessProfile] = useState<BusinessProfile>(emptyBusinessProfile(''));
+  const [currentUser, setCurrentUser] = useState<{ name: string; email: string; role: UserRole } | null>(null);
+  const [submissionStatus, setSubmissionStatus] = useState<'draft' | 'diajukan' | 'disetujui' | 'ditolak' | 'dibatalkan'>('draft');
+  const [documents, setDocuments] = useState<DocumentItem[]>(emptyDocuments);
   const [zakatPackage] = useState<ZakatPackageItem[]>(defaultPackage);
-  const [applicationStep, setApplicationStep] = useState<number>(1); // 1: Diajukan
-  const [mentoringModules, setMentoringModules] = useState<MentoringModule[]>(defaultModules);
+  const [applicationStep, setApplicationStep] = useState<number>(0);
+  const [mentoringModules, setMentoringModules] = useState<MentoringModule[]>(cleanModules);
   const [isEnrolledTraining, setIsEnrolledTraining] = useState<boolean>(false);
-  const [marketChannels, setMarketChannels] = useState<MarketChannel[]>(defaultChannels);
-  const [monthlyReports, setMonthlyReports] = useState<MonthlyReport[]>(defaultReports);
-  const [applicants, setApplicants] = useState<ApplicantItem[]>(defaultApplicants);
-  const [evidenceQueue, setEvidenceQueue] = useState<EvidenceItem[]>(defaultEvidence);
+  const [marketChannels, setMarketChannels] = useState<MarketChannel[]>(cleanChannels);
+  const [monthlyReports, setMonthlyReports] = useState<MonthlyReport[]>([]);
+  const [applicants, setApplicants] = useState<ApplicantItem[]>([]);
+  const [evidenceQueue, setEvidenceQueue] = useState<EvidenceItem[]>([]);
   const [isMobileFrame, setIsMobileFrame] = useState<boolean>(true);
 
   // Recalculate potential score when business inputs change
@@ -320,10 +187,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           if (mappingData.status_pengajuan) {
             setSubmissionStatus(mappingData.status_pengajuan);
           }
-        } else if (currentUser.email.toLowerCase() !== 'faizah@contoh.id') {
-          // Akun baru yang belum submit: bersih dan kosong tanpa data otomatis
+        } else {
+          // Akun yang belum mengisi mapping: bersih dan berstatus draft
           setBusinessProfile(emptyBusinessProfile(currentUser.name));
           setSubmissionStatus('draft');
+          setDocuments(emptyDocuments);
         }
       }
 
@@ -344,30 +212,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             name: q.mustahik_name,
             businessName: q.program_name || 'Usaha Binaan',
             businessType: 'Bantuan Zakat Produktif',
-            location: 'Poncokusumo',
+            location: 'Kabupaten Malang',
             documentsStatus: isAppWithdrawn ? 'Dibatalkan pemohon' : 'Dokumen berkas terunggah',
             plannedUsage: `Bantuan Modal Rp${Number(q.nominal_bantuan || 3500000).toLocaleString('id-ID')}`,
-            potentialScore: q.skor || 75,
+            potentialScore: q.skor || 50,
             status: isAppApproved ? 'Disetujui' : isAppRejected ? 'Ditolak' : isAppWithdrawn ? 'Ditolak' : 'Baru',
             submissionDate: q.created_at ? new Date(q.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }) : 'Hari ini',
           };
         });
 
-        setApplicants(prev => {
-          const map = new Map<string, ApplicantItem>();
-          cloudApplicants.forEach(a => map.set(a.name.toLowerCase(), a));
-          defaultApplicants.forEach(a => {
-            if (!map.has(a.name.toLowerCase())) {
-              map.set(a.name.toLowerCase(), a);
-            }
-          });
-          return Array.from(map.values());
-        });
+        setApplicants(cloudApplicants);
+      } else {
+        setApplicants([]);
       }
     } catch (err) {
       console.warn('Error syncing data from Supabase:', err);
     }
-  }, [currentUser?.email]);
+  }, [currentUser?.email, currentUser?.name]);
 
   useEffect(() => {
     if (isLoggedIn) {
@@ -566,8 +427,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setApplicants(prev =>
       prev.map(a => (a.id === id ? { ...a, status } : a))
     );
-    // If it's Faizah, synchronize with Mustahik matching step
-    if (id === 'app-faizah' || id.includes('faizah')) {
+    // Sinkronkan status pengajuan mustahik jika nama/id cocok dengan pengguna saat ini
+    const currentName = currentUser?.name?.toLowerCase() || '';
+    if (id.toLowerCase().includes(currentName) || currentName.includes(id.toLowerCase())) {
       if (status === 'Disetujui') {
         setApplicationStep(3); // Disetujui
         setSubmissionStatus('disetujui');
@@ -592,12 +454,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Calculate 6 Independence Indicators dynamically
   const activeChannelsCount = marketChannels.filter(c => c.status === 'terverifikasi').length;
   const verifiedModulesCount = mentoringModules.filter(m => m.status === 'terverifikasi').length;
-  const mentoringPercent = Math.round((verifiedModulesCount / mentoringModules.length) * 100);
+  const mentoringPercent = mentoringModules.length > 0 ? Math.round((verifiedModulesCount / mentoringModules.length) * 100) : 0;
   const recordedMonthsCount = monthlyReports.filter(r => r.status === 'terverifikasi').length;
-  const latestReport = monthlyReports[0] || { revenue: 0, expenses: 0, netIncome: 0, employeeCount: 1 };
+  const latestReport = monthlyReports[0] || { revenue: 0, expenses: 0, netIncome: 0, employeeCount: 0 };
   const currentNetIncome = latestReport.revenue - latestReport.expenses;
 
-  const indicator1Met = false; // Omzet naik >= 30% (current 24%)
+  const indicator1Met = monthlyReports.length >= 2 && latestReport.revenue > 0;
   const indicator2Met = currentNetIncome >= 2440000;
   const indicator3Met = mentoringPercent >= 80;
   const indicator4Met = recordedMonthsCount >= 3;
@@ -608,18 +470,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     {
       id: 'ind-1',
       title: 'Omzet naik ≥30%',
-      currentValue: '24%',
+      currentValue: monthlyReports.length >= 2 ? 'Tercatat' : '0%',
       targetValue: '≥30%',
       isMet: indicator1Met,
-      percentageProgress: 24,
+      percentageProgress: indicator1Met ? 100 : 0,
     },
     {
       id: 'ind-2',
       title: 'Pendapatan ≥ Rp2,44 jt',
-      currentValue: `Rp${(currentNetIncome > 0 ? currentNetIncome : 1620000).toLocaleString('id-ID')}`,
+      currentValue: `Rp${(currentNetIncome > 0 ? currentNetIncome : 0).toLocaleString('id-ID')}`,
       targetValue: '≥Rp2.440.000',
       isMet: indicator2Met,
-      percentageProgress: Math.min(Math.round((1620000 / 2440000) * 100), 100),
+      percentageProgress: Math.min(Math.round(((currentNetIncome > 0 ? currentNetIncome : 0) / 2440000) * 100), 100),
     },
     {
       id: 'ind-3',
@@ -676,22 +538,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const resetAllMockData = () => {
-    setBusinessProfile(defaultProfile);
-    setDocuments(defaultDocuments);
-    setApplicationStep(1);
-    setMentoringModules(defaultModules);
+    setBusinessProfile(emptyBusinessProfile(currentUser?.name || ''));
+    setDocuments(emptyDocuments);
+    setApplicationStep(0);
+    setMentoringModules(cleanModules);
     setIsEnrolledTraining(false);
-    setMarketChannels(defaultChannels);
-    setMonthlyReports(defaultReports);
-    setApplicants(defaultApplicants);
-    setEvidenceQueue(defaultEvidence);
-    setSubmissionStatus('diajukan');
+    setMarketChannels(cleanChannels);
+    setMonthlyReports([]);
+    setApplicants([]);
+    setEvidenceQueue([]);
+    setSubmissionStatus('draft');
   };
 
   const login = (newRole: UserRole, email?: string, name?: string) => {
     setRole(newRole);
-    const targetEmail = email || (newRole === 'mustahik' ? 'faizah@contoh.id' : newRole === 'amil' ? 'hilman@baznas.go.id' : 'rahmat@muzakki.id');
-    const targetName = name || (newRole === 'mustahik' ? 'Faizah Elysia' : newRole === 'amil' ? 'Hilman Ramadhan' : 'Bpk. Rahmat Santoso');
+    const targetEmail = email || (newRole === 'mustahik' ? 'mustahik@contoh.id' : newRole === 'amil' ? 'amil@baznas.go.id' : 'muzakki@contoh.id');
+    const targetName = name || (newRole === 'mustahik' ? 'Mustahik Binaan' : newRole === 'amil' ? 'Amil Verifikator' : 'Muzakki');
     setCurrentUser({
       role: newRole,
       email: targetEmail,
@@ -699,26 +561,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
 
     if (newRole === 'mustahik') {
-      if (targetEmail.toLowerCase() === 'faizah@contoh.id') {
-        setBusinessProfile(defaultProfile);
-        setDocuments(defaultDocuments);
-        setSubmissionStatus('diajukan');
-        setCurrent6MStep(1);
-        setApplicationStep(1);
-        setMentoringModules(defaultModules);
-        setMarketChannels(defaultChannels);
-        setMonthlyReports(defaultReports);
-      } else {
-        // Akun mustahik baru: Mulai dari bersih, kosong, status draft
-        setBusinessProfile(emptyBusinessProfile(targetName));
-        setDocuments(emptyDocuments);
-        setSubmissionStatus('draft');
-        setCurrent6MStep(1);
-        setApplicationStep(0);
-        setMentoringModules(cleanModules);
-        setMarketChannels(cleanChannels);
-        setMonthlyReports([]);
-      }
+      // Semua mustahik mulai dari profil bersih (data ditarik dari Supabase jika ada)
+      setBusinessProfile(emptyBusinessProfile(targetName));
+      setDocuments(emptyDocuments);
+      setSubmissionStatus('draft');
+      setCurrent6MStep(1);
+      setApplicationStep(0);
+      setMentoringModules(cleanModules);
+      setMarketChannels(cleanChannels);
+      setMonthlyReports([]);
     }
 
     setIsLoggedIn(true);

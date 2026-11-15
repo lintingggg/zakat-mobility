@@ -43,19 +43,19 @@ export const MuzakkiPlaceholder: React.FC = () => {
             Portofolio Impak Binaan:
           </span>
           <div className="flex justify-between items-center text-slate-600">
-            <span>Usaha yang Didanai:</span>
-            <strong className="text-slate-900">Gerit Jagung Bu Faizah (Poncokusumo)</strong>
+            <span>Program Penyaluran:</span>
+            <strong className="text-slate-900">Program Zakat Produktif 6M</strong>
           </div>
           <div className="flex justify-between items-center text-slate-600">
-            <span>Status Intervensi 6M:</span>
-            <span className="font-mono font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-              Tahap 5M (Monitoring)
+            <span>Status Transparansi:</span>
+            <span className="font-mono font-bold text-[#1A4331] bg-[#E8F3ED] px-2 py-0.5 rounded border border-[#277A4D]/20">
+              Audit & Verifikasi Terbuka
             </span>
           </div>
           <div className="flex justify-between items-center text-slate-600">
-            <span>Pertumbuhan Finansial:</span>
-            <span className="font-mono font-extrabold text-slate-900 flex items-center gap-1">
-              <TrendingUp className="w-3.5 h-3.5 text-emerald-600" /> +24% dalam 2 Bulan
+            <span>Standar Intervensi:</span>
+            <span className="font-mono font-medium text-slate-800">
+              6 Indikator Kemandirian BAZNAS
             </span>
           </div>
         </div>

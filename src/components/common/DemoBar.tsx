@@ -39,7 +39,7 @@ export const DemoBar: React.FC = () => {
                   : 'text-slate-300 hover:text-white hover:bg-slate-700/60'
               }`}
             >
-              Mustahik (Faizah)
+              Mustahik
             </button>
             <button
               onClick={() => setRole('amil')}

@@ -33,7 +33,7 @@ export const WebLayout: React.FC<WebLayoutProps> = ({ children }) => {
   } = useApp();
 
   const pendingCount = evidenceQueue.filter(e => e.status === 'menunggu').length;
-  const displayName = currentUser?.name || (role === 'mustahik' ? 'Faizah Elysia' : role === 'amil' ? 'Hilman Ramadhan' : 'Bpk. Rahmat Santoso');
+  const displayName = currentUser?.name || (role === 'mustahik' ? 'Mustahik' : role === 'amil' ? 'Amil Verifikator' : 'Muzakki');
 
   return (
     <div className="min-h-screen bg-[#F8F9FA] text-[#111827] flex flex-col font-sans selection:bg-[#E8F3ED] selection:text-[#1A4331]">

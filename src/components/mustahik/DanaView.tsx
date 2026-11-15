@@ -30,7 +30,7 @@ export const DanaView: React.FC = () => {
               Total Dana Bantuan Produktif
             </span>
             <div className="text-3xl sm:text-4xl font-extrabold tracking-tight mt-1 mb-3 text-white">
-              Rp {isDisbursed ? '7.000.000' : isApproved ? '7.000.000' : '3.500.000'}
+              Rp {isDisbursed ? '7.000.000' : isApproved ? '7.000.000' : '0'}
             </div>
             <div className="flex items-center gap-2 text-xs">
               <span className={`px-3 py-1 rounded-full font-semibold border ${
@@ -38,9 +38,9 @@ export const DanaView: React.FC = () => {
                   ? 'bg-white/20 text-white border-white/30'
                   : isApproved
                   ? 'bg-emerald-500/20 text-emerald-200 border-emerald-400'
-                  : 'bg-amber-400/20 text-amber-200 border-amber-300'
+                  : 'bg-white/10 text-[#A3B8AD] border-white/20'
               }`}>
-                Status: {isDisbursed ? 'Disalurkan Penuh' : isApproved ? 'Siap Cair' : 'Menunggu Persetujuan Amil'}
+                Status: {isDisbursed ? 'Disalurkan Penuh' : isApproved ? 'Siap Cair' : 'Belum Ada Bantuan Disetujui'}
               </span>
             </div>
           </div>

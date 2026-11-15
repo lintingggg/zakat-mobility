@@ -178,7 +178,7 @@ export const MustahikHome: React.FC = () => {
               Total Dana Zakat Produktif
             </span>
             <div className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white mt-1 font-mono">
-              Rp {isDraft ? '0' : isDisbursed || isApproved ? '7.000.000' : '3.500.000'}
+              Rp {isDisbursed || isApproved ? '7.000.000' : '0'}
             </div>
             {isDraft && (
               <span className="text-[10px] text-[#A3B8AD] mt-1 block">
@@ -220,7 +220,7 @@ export const MustahikHome: React.FC = () => {
             />
           </div>
           <p className="text-[11px] text-[#A3B8AD] pt-1">
-            {isDraft ? (
+            {isDraft || businessProfile.calculatedScore === 0 ? (
               <span>Lengkapi profil dan pemetaan usaha Anda di tahap <strong>1M: Mapping</strong></span>
             ) : (
               <>

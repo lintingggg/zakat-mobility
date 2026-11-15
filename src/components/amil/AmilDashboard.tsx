@@ -11,6 +11,10 @@ export const AmilDashboard: React.FC = () => {
   const totalSubmissions = applicants.length;
   const pendingDecisions = applicants.filter(a => a.status === 'Baru').length;
   const approvedSubmissions = applicants.filter(a => a.status === 'Disetujui').length;
+  const totalAllocated = approvedSubmissions * 3500000;
+  const avgScore = applicants.length > 0
+    ? Math.round(applicants.reduce((acc, a) => acc + (a.potentialScore || 0), 0) / applicants.length)
+    : 0;
 
   return (
     <div className="space-y-6 taste-enter">
@@ -81,7 +85,9 @@ export const AmilDashboard: React.FC = () => {
 
         <div className="taste-card bg-white p-4 rounded-2xl border border-slate-200 space-y-1">
           <span className="text-xs font-semibold text-slate-500">Dana Teralokasi</span>
-          <span className="text-xl sm:text-2xl font-extrabold text-slate-900 font-mono block mt-1">Rp7.000.000</span>
+          <span className="text-xl sm:text-2xl font-extrabold text-slate-900 font-mono block mt-1">
+            Rp{totalAllocated.toLocaleString('id-ID')}
+          </span>
           <span className="text-[11px] text-slate-400">Total anggaran terserap</span>
         </div>
       </div>
@@ -93,34 +99,45 @@ export const AmilDashboard: React.FC = () => {
           <div className="flex justify-between items-baseline">
             <div>
               <h3 className="text-sm font-bold text-slate-900">Rata-rata Skor Potensi</h3>
-              <p className="text-xs text-slate-500">Kalkulasi 5 aspek kelayakan usaha pelamar</p>
+              <p className="text-xs text-slate-500">Kalkulasi 5 aspek kelayakan usaha pemohon</p>
             </div>
-            <span className="text-xl font-extrabold text-teal-800 font-mono">67%</span>
+            <span className="text-xl font-extrabold text-teal-800 font-mono">
+              {avgScore > 0 ? `${avgScore}%` : '-'}
+            </span>
           </div>
           <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
-            <div className="bg-teal-700 h-full w-[67%] rounded-full" />
+            <div className="bg-teal-700 h-full rounded-full transition-all duration-500" style={{ width: `${avgScore}%` }} />
           </div>
           <p className="text-[11px] text-slate-500">
-            Ambang batas pendampingan mandiri: 70%. Nilai di bawah 50% diprioritaskan untuk pengadaan mesin produksi utama.
+            Ambang batas pendampingan mandiri: 70%. Nilai di bawah 50% diprioritaskan untuk pendampingan dasar.
           </p>
         </div>
 
         {/* Usaha Dipantau */}
         <div className="taste-card bg-white rounded-2xl p-5 border border-slate-200 space-y-3">
           <h3 className="text-sm font-bold text-slate-900">Status Usaha Binaan</h3>
-          <p className="text-xs text-slate-600">
-            <strong>3 usaha aktif</strong> dalam pendampingan · <strong>1 usaha</strong> memerlukan pembinaan pembukuan.
-          </p>
-          <div className="pt-1 flex flex-col gap-2 text-xs">
-            <div className="flex items-center gap-2 p-2 rounded-lg bg-slate-50 text-slate-800 border border-slate-200">
-              <span className="w-2 h-2 rounded-full bg-emerald-600 shrink-0" />
-              <span>Gerit Jagung Bu Faizah: Pertumbuhan omzet stabil (+24%)</span>
-            </div>
-            <div className="flex items-center gap-2 p-2 rounded-lg bg-slate-50 text-slate-800 border border-slate-200">
-              <span className="w-2 h-2 rounded-full bg-blue-600 shrink-0" />
-              <span>Kopi Robusta Mbak Siti: Menunggu verifikasi legalitas P-IRT</span>
-            </div>
-          </div>
+          {applicants.length > 0 ? (
+            <>
+              <p className="text-xs text-slate-600">
+                <strong>{approvedSubmissions} usaha disetujui</strong> dari {totalSubmissions} pengajuan masuk.
+              </p>
+              <div className="pt-1 flex flex-col gap-2 text-xs">
+                {applicants.slice(0, 3).map(app => (
+                  <div key={app.id} className="flex items-center justify-between p-2 rounded-lg bg-slate-50 text-slate-800 border border-slate-200">
+                    <div className="flex items-center gap-2 truncate">
+                      <span className={`w-2 h-2 rounded-full ${app.status === 'Disetujui' ? 'bg-emerald-600' : 'bg-amber-500'} shrink-0`} />
+                      <span className="font-semibold truncate">{app.businessName} ({app.name})</span>
+                    </div>
+                    <span className="text-[11px] font-mono text-slate-500 shrink-0">{app.status}</span>
+                  </div>
+                ))}
+              </div>
+            </>
+          ) : (
+            <p className="text-xs text-slate-400 py-4 text-center">
+              Belum ada data usaha binaan yang terdaftar.
+            </p>
+          )}
         </div>
       </div>
     </div>

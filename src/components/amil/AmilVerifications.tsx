@@ -17,6 +17,17 @@ export const AmilVerifications: React.FC = () => {
       </div>
 
       {/* Responsive Grid: 2 columns on tablet/desktop */}
+      {evidenceQueue.length === 0 ? (
+        <div className="taste-card bg-white rounded-2xl p-10 border border-slate-200 text-center space-y-3 my-6">
+          <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto text-slate-400">
+            <CheckCircle2 className="w-6 h-6" />
+          </div>
+          <h3 className="text-base font-bold text-[#111827]">Tidak Ada Antrean Verifikasi</h3>
+          <p className="text-xs text-[#6B7280] max-w-sm mx-auto leading-relaxed">
+            Semua berkas dan dokumen persyaratan telah diverifikasi atau belum ada unggahan berkas baru dari mustahik binaan.
+          </p>
+        </div>
+      ) : (
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {evidenceQueue.map(item => {
           const isVerified = item.status === 'terverifikasi';
@@ -90,6 +101,7 @@ export const AmilVerifications: React.FC = () => {
           );
         })}
       </div>
+      )}
     </div>
   );
 };

@@ -20,7 +20,7 @@ import {
 
 export const AmilSubmissions: React.FC = () => {
   const { applicants, updateApplicantStatus, businessProfile } = useApp();
-  const [selectedId, setSelectedId] = useState<string>(applicants[0]?.id || 'app-faizah');
+  const [selectedId, setSelectedId] = useState<string>(applicants[0]?.id || '');
 
   const selectedApp = applicants.find(a => a.id === selectedId) || applicants[0];
 
@@ -42,22 +42,33 @@ export const AmilSubmissions: React.FC = () => {
         </span>
       </div>
 
-      {/* Guideline 6.2: Desktop Adaptation Strategy - Split View / Two-Column Layout */}
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-start">
-        {/* Kolom Kiri (40% / 5 cols): Daftar Scrollable Pengajuan Mustahik */}
-        <div className="md:col-span-5 space-y-3 md:max-h-[calc(100vh-180px)] md:overflow-y-auto pr-0 md:pr-1">
-          <div className="flex items-center justify-between pb-1">
-            <span className="text-[11px] font-bold text-[#6B7280] uppercase tracking-wider font-mono">
-              Daftar Pemohon ({applicants.length})
-            </span>
-            <span className="text-[11px] text-[#6B7280]">Urutkan: Terbaru</span>
+      {applicants.length === 0 ? (
+        <div className="taste-card bg-white rounded-2xl p-10 border border-slate-200 text-center space-y-3 my-6">
+          <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto text-slate-400">
+            <FileText className="w-6 h-6" />
           </div>
+          <h3 className="text-base font-bold text-[#111827]">Belum Ada Pengajuan Masuk</h3>
+          <p className="text-xs text-[#6B7280] max-w-sm mx-auto leading-relaxed">
+            Belum ada berkas formulir pengajuan mustahik baru yang diajukan. Setiap pengajuan dari mustahik akan otomatis masuk ke antrean ini.
+          </p>
+        </div>
+      ) : (
+        /* Guideline 6.2: Desktop Adaptation Strategy - Split View / Two-Column Layout */
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-start">
+          {/* Kolom Kiri (40% / 5 cols): Daftar Scrollable Pengajuan Mustahik */}
+          <div className="md:col-span-5 space-y-3 md:max-h-[calc(100vh-180px)] md:overflow-y-auto pr-0 md:pr-1">
+            <div className="flex items-center justify-between pb-1">
+              <span className="text-[11px] font-bold text-[#6B7280] uppercase tracking-wider font-mono">
+                Daftar Pemohon ({applicants.length})
+              </span>
+              <span className="text-[11px] text-[#6B7280]">Urutkan: Terbaru</span>
+            </div>
 
-          <div className="space-y-2.5">
-            {applicants.map(app => {
-              const isSelected = app.id === selectedId;
-              const isApproved = app.status === 'Disetujui';
-              const isAssisted = app.status === 'Didampingi';
+            <div className="space-y-2.5">
+              {applicants.map(app => {
+                const isSelected = app.id === selectedId;
+                const isApproved = app.status === 'Disetujui';
+                const isAssisted = app.status === 'Didampingi';
               const isRejected = app.status === 'Ditolak';
 
               return (
@@ -134,13 +145,13 @@ export const AmilSubmissions: React.FC = () => {
                 <div>
                   <span className="text-[#6B7280] block text-[11px]">Estimasi Omzet Bulanan:</span>
                   <span className="font-mono font-bold text-[#111827] text-sm">
-                    Rp{selectedApp.id === 'app-faizah' ? businessProfile.monthlyRevenue.toLocaleString('id-ID') : '2.400.000'}
+                    {businessProfile.monthlyRevenue > 0 ? `Rp${businessProfile.monthlyRevenue.toLocaleString('id-ID')}` : 'Sesuai Formulir'}
                   </span>
                 </div>
                 <div>
                   <span className="text-[#6B7280] block text-[11px]">Rencana Alokasi Paket:</span>
                   <span className="font-bold text-[#1A4331] text-xs block truncate">
-                    {selectedApp.plannedUsage}
+                    {selectedApp.plannedUsage || 'Bantuan Modal Usaha 6M'}
                   </span>
                 </div>
               </div>
@@ -151,10 +162,10 @@ export const AmilSubmissions: React.FC = () => {
                   Indikator Aspek Kelayakan Usaha (1M Mapping):
                 </span>
                 <div className="grid grid-cols-2 gap-2 text-[11px] text-[#6B7280] bg-[#F8F9FA] p-3 rounded-xl border border-slate-200">
-                  <div>• Lama Usaha: <strong className="text-[#111827]">{selectedApp.id === 'app-faizah' ? businessProfile.duration : '2 tahun'}</strong></div>
-                  <div>• Lokasi Usaha: <strong className="text-[#111827]">{selectedApp.id === 'app-faizah' ? businessProfile.aspects.premisesStatus : 'Milik sendiri'}</strong></div>
-                  <div>• Pelanggan Tetap: <strong className="text-[#111827]">{selectedApp.id === 'app-faizah' ? businessProfile.aspects.regularCustomers : '6-20 pelanggan'}</strong></div>
-                  <div>• Pelatihan: <strong className="text-[#111827]">{selectedApp.id === 'app-faizah' ? businessProfile.aspects.trainingsAttended : 'Pernah 1x'}</strong></div>
+                  <div>• Lama Usaha: <strong className="text-[#111827]">{businessProfile.duration || '-'}</strong></div>
+                  <div>• Lokasi Usaha: <strong className="text-[#111827]">{businessProfile.aspects?.premisesStatus || '-'}</strong></div>
+                  <div>• Pelanggan Tetap: <strong className="text-[#111827]">{businessProfile.aspects?.regularCustomers || '-'}</strong></div>
+                  <div>• Pelatihan: <strong className="text-[#111827]">{businessProfile.aspects?.trainingsAttended || '-'}</strong></div>
                 </div>
               </div>
 
@@ -219,6 +230,7 @@ export const AmilSubmissions: React.FC = () => {
           )}
         </div>
       </div>
+      )}
     </div>
   );
 };
