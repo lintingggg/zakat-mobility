@@ -24,32 +24,84 @@ export const MustahikHome: React.FC = () => {
     current6MStep,
     submissionStatus,
     documents,
-    independenceIndicators
+    mentoringModules,
+    marketChannels,
+    monthlyReports,
+    independenceIndicators,
+    isFullyGraduated,
   } = useApp();
 
   const isDraft = submissionStatus === 'draft' || !businessProfile.businessName || businessProfile.businessName.trim() === '';
   const isApproved = applicationStep >= 3;
   const isDisbursed = applicationStep === 4;
 
+  const verifiedModulesCount = mentoringModules.filter(m => m.status === 'terverifikasi').length;
+  const mentoringPercent = mentoringModules.length > 0 ? Math.round((verifiedModulesCount / mentoringModules.length) * 100) : 0;
+  const activeChannelsCount = marketChannels.filter(c => c.status === 'terverifikasi').length;
+  const recordedMonthsCount = monthlyReports.filter(r => r.status === 'terverifikasi').length;
+  const metIndicators = independenceIndicators.filter(i => i.isMet).length;
+
+  // Hitung tahapan 6M yang sedang aktif & menjadi langkah selanjutnya
+  let currentActiveStep = 1;
+  if (isDraft) {
+    currentActiveStep = 1;
+  } else if (!isApproved && !isDisbursed) {
+    currentActiveStep = 2; // Tahap 1 (Mapping) sudah terisi/diajukan, langkah selanjutnya adalah 2M Matching
+  } else if (mentoringPercent < 80) {
+    currentActiveStep = 3; // Tahap 2 (Matching) sudah disetujui, langkah selanjutnya 3M Mentoring
+  } else if (activeChannelsCount < 3) {
+    currentActiveStep = 4; // Tahap 3 (Mentoring) selesai, langkah selanjutnya 4M Market
+  } else if (recordedMonthsCount < 3) {
+    currentActiveStep = 5; // Tahap 4 (Market) selesai, langkah selanjutnya 5M Monitoring
+  } else {
+    currentActiveStep = 6; // Tahap 5 selesai, langkah selanjutnya 6M Moving Up
+  }
+
   const handleOpen6M = (stepNumber: number) => {
     setCurrent6MStep(stepNumber);
     setMustahikTab('6m');
   };
 
-  // Next step calculation
-  const nextStepLabel = isDraft
-    ? '1M: Mapping (Isi Profil & Pemetaan Usaha)'
-    : current6MStep === 1 
-    ? '2M: Matching (Paket Bantuan Modal)' 
-    : current6MStep === 2 
-    ? '3M: Mentoring (Modul Bisnis)' 
-    : current6MStep === 3 
-    ? '4M: Market (Jejaring Pasar)' 
-    : current6MStep === 4 
-    ? '5M: Monitoring (Laporan Omzet)' 
-    : '6M: Moving Up (Kemandirian)';
+  const nextStepConfigs = {
+    1: {
+      tag: 'Langkah Awal',
+      title: 'Mulai 1M: Mapping (Pemetaan Usaha)',
+      desc: 'Isi profil usaha, 5 indikator aspek kelayakan, dan unggah berkas persyaratan awal untuk diverifikasi.',
+      btnText: 'Mulai Isi Profil',
+    },
+    2: {
+      tag: 'Langkah Selanjutnya',
+      title: 'Lanjutkan ke 2M: Matching (Paket Bantuan Modal)',
+      desc: 'Cek alokasi bantuan alat produksi, modal bahan baku, dan pantau proses persetujuan SK BAZNAS.',
+      btnText: 'Lanjutkan ke 2M',
+    },
+    3: {
+      tag: 'Langkah Selanjutnya',
+      title: 'Lanjutkan ke 3M: Mentoring (Modul Bisnis)',
+      desc: 'Pelajari 6 modul pembukuan & standardisasi usaha serta unggah tugas praktik binaan.',
+      btnText: 'Lanjutkan ke 3M',
+    },
+    4: {
+      tag: 'Langkah Selanjutnya',
+      title: 'Lanjutkan ke 4M: Market (Jejaring Pasar)',
+      desc: 'Buka dan daftarkan minimal 3 saluran penjualan offline maupun online (toko lokal, medsos, reseller).',
+      btnText: 'Lanjutkan ke 4M',
+    },
+    5: {
+      tag: 'Langkah Selanjutnya',
+      title: 'Lanjutkan ke 5M: Monitoring (Laporan Omzet)',
+      desc: 'Catat laporan keuangan bulanan dan lampirkan bukti nota transaksi secara tertib.',
+      btnText: 'Lanjutkan ke 5M',
+    },
+    6: {
+      tag: 'Langkah Akhir',
+      title: 'Lanjutkan ke 6M: Moving Up (Kemandirian)',
+      desc: 'Pantau pemenuhan 6 indikator kemandirian ekonomi untuk kelulusan menjadi muzakki berdaya.',
+      btnText: 'Lanjutkan ke 6M',
+    },
+  };
 
-  const metIndicators = independenceIndicators.filter(i => i.isMet).length;
+  const activeConfig = nextStepConfigs[currentActiveStep as keyof typeof nextStepConfigs];
 
   return (
     <div className="space-y-5 taste-enter">
@@ -115,14 +167,14 @@ export const MustahikHome: React.FC = () => {
           <div className="flex items-center justify-between text-xs">
             <span className="text-[#A3B8AD]">Tahapan Program 6M</span>
             <span className="font-bold text-white font-mono">
-              {isDraft ? '0 dari 6 Tahap' : `${current6MStep} dari 6 Tahap`}
+              {isDraft ? '0 dari 6 Tahap' : `Tahap ${currentActiveStep} dari 6`}
             </span>
           </div>
           
           <div className="w-full bg-black/20 h-2 rounded-full overflow-hidden">
             <div 
               className="bg-[#277A4D] h-full rounded-full transition-all duration-500"
-              style={{ width: isDraft ? '0%' : `${Math.round((current6MStep / 6) * 100)}%` }}
+              style={{ width: isDraft ? '0%' : `${Math.round((currentActiveStep / 6) * 100)}%` }}
             />
           </div>
           <p className="text-[11px] text-[#A3B8AD] pt-1">
@@ -143,7 +195,7 @@ export const MustahikHome: React.FC = () => {
         </div>
       </div>
 
-      {/* 3. Next Step Banner (Guideline 5: Banner info tahap selanjutnya) */}
+      {/* 3. Next Step Banner (Guideline 5: Banner info tahap selanjutnya - Dinamis sesuai langkah aktif) */}
       <div className="taste-card bg-[#E8F3ED] border border-[#277A4D]/20 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-start gap-3">
           <div className="w-9 h-9 rounded-full bg-[#1A4331] text-white flex items-center justify-center shrink-0 shadow-2xs">
@@ -151,32 +203,22 @@ export const MustahikHome: React.FC = () => {
           </div>
           <div>
             <span className="text-[10px] font-mono uppercase font-bold text-[#277A4D] tracking-wider">
-              {isDraft ? 'Langkah Awal' : 'Langkah Selanjutnya'}
+              {activeConfig.tag}
             </span>
             <h3 className="text-sm sm:text-base font-bold text-[#111827]">
-              {isDraft ? 'Mulai 1M: Mapping (Pemetaan Usaha)' : `Lanjutkan ke ${nextStepLabel}`}
+              {activeConfig.title}
             </h3>
             <p className="text-xs text-[#6B7280] mt-0.5">
-              {isDraft 
-                ? 'Isi profil usaha, 5 indikator aspek kelayakan, dan unggah berkas legalitas untuk diverifikasi.'
-                : 'Lengkapi berkas dan tugas untuk membuka paket intervensi berikutnya.'}
+              {activeConfig.desc}
             </p>
           </div>
         </div>
 
         <button
-          onClick={() => {
-            if (isDraft) {
-              handleOpen6M(1);
-            } else if (current6MStep === 1) {
-              handleOpen6M(1);
-            } else {
-              handleOpen6M(current6MStep < 6 ? current6MStep + 1 : 6);
-            }
-          }}
+          onClick={() => handleOpen6M(currentActiveStep)}
           className="btn-primary text-xs shrink-0 self-end sm:self-center"
         >
-          <span>{isDraft ? 'Mulai Isi Profil' : 'Lanjutkan'}</span>
+          <span>{activeConfig.btnText}</span>
           <ArrowRight className="w-3.5 h-3.5" />
         </button>
       </div>
@@ -202,7 +244,7 @@ export const MustahikHome: React.FC = () => {
               step: 1, 
               title: '1M: Mapping', 
               desc: 'Pemetaan profil & skor', 
-              status: isDraft ? 'Belum Diisi' : submissionStatus === 'diajukan' ? 'Menunggu Verifikasi' : 'Selesai' 
+              status: isDraft ? 'Belum Diisi' : 'Selesai' 
             },
             { 
               step: 2, 
@@ -214,25 +256,25 @@ export const MustahikHome: React.FC = () => {
               step: 3, 
               title: '3M: Mentoring', 
               desc: '6 Modul pembukuan', 
-              status: isDraft ? 'Terkunci' : 'Aktif' 
+              status: isDraft || !isApproved ? 'Terkunci' : mentoringPercent >= 80 ? 'Selesai' : 'Aktif' 
             },
             { 
               step: 4, 
               title: '4M: Market', 
               desc: 'Toko & jejaring pasar', 
-              status: isDraft ? 'Terkunci' : 'Aktif' 
+              status: isDraft || !isApproved ? 'Terkunci' : activeChannelsCount >= 3 ? 'Selesai' : mentoringPercent >= 80 ? 'Aktif' : 'Menunggu' 
             },
             { 
               step: 5, 
               title: '5M: Monitoring', 
               desc: 'Laporan omzet bulanan', 
-              status: isDraft ? 'Terkunci' : 'Rutin' 
+              status: isDraft || !isApproved ? 'Terkunci' : recordedMonthsCount >= 3 ? 'Selesai' : activeChannelsCount >= 3 ? 'Rutin' : 'Menunggu' 
             },
             { 
               step: 6, 
               title: '6M: Moving Up', 
               desc: `${metIndicators}/6 Tolok ukur mandiri`, 
-              status: isDraft ? 'Terkunci' : 'Target' 
+              status: isDraft || !isApproved ? 'Terkunci' : isFullyGraduated ? 'Lulus' : 'Target' 
             },
           ].map(m => (
             <button
