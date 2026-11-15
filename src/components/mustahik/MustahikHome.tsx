@@ -16,6 +16,7 @@ import {
 
 export const MustahikHome: React.FC = () => {
   const { 
+    currentUser,
     businessProfile, 
     setMustahikTab, 
     setCurrent6MStep, 
@@ -26,6 +27,7 @@ export const MustahikHome: React.FC = () => {
     independenceIndicators
   } = useApp();
 
+  const isDraft = submissionStatus === 'draft' || !businessProfile.businessName || businessProfile.businessName.trim() === '';
   const isApproved = applicationStep >= 3;
   const isDisbursed = applicationStep === 4;
 
@@ -35,8 +37,10 @@ export const MustahikHome: React.FC = () => {
   };
 
   // Next step calculation
-  const nextStepLabel = current6MStep === 1 
-    ? '2M: Matching (Paket Bantuan)' 
+  const nextStepLabel = isDraft
+    ? '1M: Mapping (Isi Profil & Pemetaan Usaha)'
+    : current6MStep === 1 
+    ? '2M: Matching (Paket Bantuan Modal)' 
     : current6MStep === 2 
     ? '3M: Mentoring (Modul Bisnis)' 
     : current6MStep === 3 
@@ -53,15 +57,31 @@ export const MustahikHome: React.FC = () => {
       <div className="flex items-center justify-between pb-1">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-[#111827] tracking-tight">
-            {businessProfile.name}
+            {currentUser?.name || businessProfile.name}
           </h1>
           <p className="text-xs text-[#6B7280]">
-            {businessProfile.businessName} · {businessProfile.address}
+            {businessProfile.businessName 
+              ? `${businessProfile.businessName} · ${businessProfile.address || 'Lokasi usaha'}` 
+              : 'Profil usaha belum dilengkapi · Silakan isi di menu 1M Mapping'}
           </p>
         </div>
-        <span className="pill-verified">
-          <CheckCircle2 className="w-3.5 h-3.5" />
-          <span>Mustahik BAZNAS</span>
+        <span className={isApproved ? 'pill-verified' : 'pill-waiting'}>
+          {isApproved ? (
+            <>
+              <CheckCircle2 className="w-3.5 h-3.5" />
+              <span>Mustahik BAZNAS</span>
+            </>
+          ) : isDraft ? (
+            <>
+              <Clock className="w-3.5 h-3.5" />
+              <span>Calon Binaan</span>
+            </>
+          ) : (
+            <>
+              <Clock className="w-3.5 h-3.5" />
+              <span>Menunggu Verifikasi</span>
+            </>
+          )}
         </span>
       </div>
 
@@ -75,9 +95,14 @@ export const MustahikHome: React.FC = () => {
             <span className="text-[11px] font-semibold text-[#A3B8AD] uppercase tracking-wider block">
               Total Dana Zakat Produktif
             </span>
-            <div className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white mt-1">
-              Rp {isDisbursed ? '7.000.000' : isApproved ? '7.000.000' : '3.500.000'}
+            <div className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white mt-1 font-mono">
+              Rp {isDraft ? '0' : isDisbursed || isApproved ? '7.000.000' : '3.500.000'}
             </div>
+            {isDraft && (
+              <span className="text-[10px] text-[#A3B8AD] mt-1 block">
+                Ajukan formulir 1M Mapping untuk verifikasi bantuan modal
+              </span>
+            )}
           </div>
 
           <span className={`text-[11px] font-bold px-3 py-1 rounded-full border ${
@@ -85,6 +110,8 @@ export const MustahikHome: React.FC = () => {
               ? 'bg-[#277A4D]/30 text-[#E8F3ED] border-[#277A4D]'
               : isApproved
               ? 'bg-emerald-500/20 text-emerald-200 border-emerald-400'
+              : isDraft
+              ? 'bg-white/10 text-slate-200 border-white/20'
               : submissionStatus === 'dibatalkan'
               ? 'bg-red-500/20 text-red-200 border-red-400'
               : 'bg-amber-400/20 text-amber-200 border-amber-300'
@@ -93,6 +120,8 @@ export const MustahikHome: React.FC = () => {
               ? 'Dana Disalurkan' 
               : isApproved 
               ? 'Disetujui BAZNAS' 
+              : isDraft
+              ? 'Belum Mengajukan'
               : submissionStatus === 'dibatalkan'
               ? 'Dibatalkan'
               : 'Menunggu Verifikasi'}
@@ -103,17 +132,23 @@ export const MustahikHome: React.FC = () => {
         <div className="pt-3 border-t border-white/10 space-y-2">
           <div className="flex items-center justify-between text-xs">
             <span className="text-[#A3B8AD]">Tahapan Program 6M</span>
-            <span className="font-bold text-white font-mono">{current6MStep} dari 6 Tahap</span>
+            <span className="font-bold text-white font-mono">
+              {isDraft ? '0 dari 6 Tahap' : `${current6MStep} dari 6 Tahap`}
+            </span>
           </div>
           
           <div className="w-full bg-black/20 h-2 rounded-full overflow-hidden">
             <div 
               className="bg-[#277A4D] h-full rounded-full transition-all duration-500"
-              style={{ width: `${Math.round((current6MStep / 6) * 100)}%` }}
+              style={{ width: isDraft ? '0%' : `${Math.round((current6MStep / 6) * 100)}%` }}
             />
           </div>
           <p className="text-[11px] text-[#A3B8AD] pt-1">
-            Skor Potensi Usaha: <strong className="text-white">{businessProfile.calculatedScore}%</strong> · {businessProfile.calculatedScore >= 75 ? 'Sangat Layak' : 'Layak Binaan'}
+            {isDraft ? (
+              <span>Lengkapi profil dan pemetaan usaha Anda di tahap <strong>1M: Mapping</strong></span>
+            ) : (
+              <>Skor Potensi Usaha: <strong className="text-white">{businessProfile.calculatedScore}%</strong> · {businessProfile.calculatedScore >= 75 ? 'Sangat Layak' : 'Layak Binaan'}</>
+            )}
           </p>
         </div>
       </div>
@@ -126,22 +161,32 @@ export const MustahikHome: React.FC = () => {
           </div>
           <div>
             <span className="text-[10px] font-mono uppercase font-bold text-[#277A4D] tracking-wider">
-              Langkah Selanjutnya
+              {isDraft ? 'Langkah Awal' : 'Langkah Selanjutnya'}
             </span>
             <h3 className="text-sm sm:text-base font-bold text-[#111827]">
-              Lanjutkan ke {nextStepLabel}
+              {isDraft ? 'Mulai 1M: Mapping (Pemetaan Usaha)' : `Lanjutkan ke ${nextStepLabel}`}
             </h3>
             <p className="text-xs text-[#6B7280] mt-0.5">
-              Lengkapi berkas dan tugas untuk membuka paket intervensi berikutnya.
+              {isDraft 
+                ? 'Isi profil usaha, 5 indikator aspek kelayakan, dan unggah berkas legalitas untuk diverifikasi.'
+                : 'Lengkapi berkas dan tugas untuk membuka paket intervensi berikutnya.'}
             </p>
           </div>
         </div>
 
         <button
-          onClick={() => handleOpen6M(current6MStep < 6 ? current6MStep + 1 : 6)}
+          onClick={() => {
+            if (isDraft) {
+              handleOpen6M(1);
+            } else if (current6MStep === 1) {
+              handleOpen6M(1);
+            } else {
+              handleOpen6M(current6MStep < 6 ? current6MStep + 1 : 6);
+            }
+          }}
           className="btn-primary text-xs shrink-0 self-start sm:self-center"
         >
-          <span>Lanjutkan</span>
+          <span>{isDraft ? 'Mulai Isi Profil' : 'Lanjutkan'}</span>
           <ArrowRight className="w-3.5 h-3.5" />
         </button>
       </div>
@@ -163,12 +208,42 @@ export const MustahikHome: React.FC = () => {
 
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
           {[
-            { step: 1, title: '1M: Mapping', desc: 'Pemetaan profil & skor', status: 'Selesai' },
-            { step: 2, title: '2M: Matching', desc: 'Paket modal & alat', status: isApproved ? 'Selesai' : 'Aktif' },
-            { step: 3, title: '3M: Mentoring', desc: '6 Modul pembukuan', status: 'Aktif' },
-            { step: 4, title: '4M: Market', desc: 'Toko & jejaring pasar', status: 'Aktif' },
-            { step: 5, title: '5M: Monitoring', desc: 'Laporan omzet bulanan', status: 'Rutin' },
-            { step: 6, title: '6M: Moving Up', desc: `${metIndicators}/6 Tolok ukur mandiri`, status: 'Target' },
+            { 
+              step: 1, 
+              title: '1M: Mapping', 
+              desc: 'Pemetaan profil & skor', 
+              status: isDraft ? 'Belum Diisi' : submissionStatus === 'diajukan' ? 'Menunggu Verifikasi' : 'Selesai' 
+            },
+            { 
+              step: 2, 
+              title: '2M: Matching', 
+              desc: 'Paket modal & alat', 
+              status: isDraft ? 'Terkunci' : isApproved ? 'Selesai' : 'Aktif' 
+            },
+            { 
+              step: 3, 
+              title: '3M: Mentoring', 
+              desc: '6 Modul pembukuan', 
+              status: isDraft ? 'Terkunci' : 'Aktif' 
+            },
+            { 
+              step: 4, 
+              title: '4M: Market', 
+              desc: 'Toko & jejaring pasar', 
+              status: isDraft ? 'Terkunci' : 'Aktif' 
+            },
+            { 
+              step: 5, 
+              title: '5M: Monitoring', 
+              desc: 'Laporan omzet bulanan', 
+              status: isDraft ? 'Terkunci' : 'Rutin' 
+            },
+            { 
+              step: 6, 
+              title: '6M: Moving Up', 
+              desc: `${metIndicators}/6 Tolok ukur mandiri`, 
+              status: isDraft ? 'Terkunci' : 'Target' 
+            },
           ].map(m => (
             <button
               key={m.step}
@@ -190,7 +265,9 @@ export const MustahikHome: React.FC = () => {
                 <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${
                   m.status === 'Selesai' 
                     ? 'bg-[#E8F3ED] text-[#277A4D]' 
-                    : 'bg-white text-[#6B7280] border border-slate-200'
+                    : m.status === 'Terkunci' || m.status === 'Belum Diisi'
+                    ? 'bg-slate-100 text-[#6B7280]'
+                    : 'bg-amber-50 text-amber-800 border border-amber-200'
                 }`}>
                   {m.status}
                 </span>
@@ -208,7 +285,7 @@ export const MustahikHome: React.FC = () => {
               Dokumen Verifikasi Legalitas
             </h2>
             <p className="text-[11px] text-[#6B7280]">
-              Berkas fisik diperiksa oleh Amil BAZNAS sebelum pencairan.
+              Berkas fisik diperiksa oleh Amil BAZNAS sebelum pencairan bantuan.
             </p>
           </div>
           <button
@@ -222,6 +299,7 @@ export const MustahikHome: React.FC = () => {
         <div className="space-y-2">
           {documents.map(doc => {
             const isDocVerified = doc.status === 'terverifikasi';
+            const isDocWaiting = doc.status === 'menunggu' && doc.filename;
 
             return (
               <div
@@ -237,21 +315,25 @@ export const MustahikHome: React.FC = () => {
                       {doc.name}
                     </span>
                     <span className="text-[10px] text-[#6B7280] block">
-                      {doc.filename} · {doc.notes}
+                      {doc.filename ? `${doc.filename} · ${doc.notes}` : `Belum diunggah · ${doc.notes}`}
                     </span>
                   </div>
                 </div>
 
-                <span className={isDocVerified ? 'pill-verified' : 'pill-waiting'}>
+                <span className={isDocVerified ? 'pill-verified' : isDocWaiting ? 'pill-waiting' : 'pill-waiting opacity-75'}>
                   {isDocVerified ? (
                     <>
                       <CheckCircle2 className="w-3 h-3" />
                       <span>Terverifikasi</span>
                     </>
-                  ) : (
+                  ) : isDocWaiting ? (
                     <>
                       <Clock className="w-3 h-3" />
                       <span>Menunggu</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>Belum Diunggah</span>
                     </>
                   )}
                 </span>

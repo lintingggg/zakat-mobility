@@ -98,6 +98,47 @@ const defaultProfile: BusinessProfile = {
   calculatedScore: 47,
 };
 
+const emptyBusinessProfile = (name: string): BusinessProfile => ({
+  name,
+  businessName: '',
+  businessType: '',
+  duration: '',
+  monthlyRevenue: 0,
+  address: '',
+  aspects: {
+    experienceYears: 'Kurang dari 1 tahun',
+    trainingsAttended: 'Belum pernah',
+    premisesStatus: 'Menumpang di rumah',
+    regularCustomers: 'Kurang dari 5',
+    networkMembership: 'Tidak ada',
+  },
+  calculatedScore: 30,
+});
+
+const emptyDocuments: DocumentItem[] = [
+  { id: 'ktp', name: 'KTP', filename: '', status: 'belum_diunggah', notes: 'Foto KTP jelas dan tidak terpotong' },
+  { id: 'kk', name: 'Kartu Keluarga', filename: '', status: 'belum_diunggah', notes: 'Untuk memverifikasi anggota keluarga' },
+  { id: 'sktm', name: 'SKTM / bukti DTKS', filename: '', status: 'belum_diunggah', notes: 'Surat keterangan dari desa atau kelurahan' },
+  { id: 'foto', name: 'Foto usaha dan lokasi', filename: '', status: 'belum_diunggah', notes: 'Minimal 2 foto: tempat produksi dan produk' },
+];
+
+const cleanModules: MentoringModule[] = [
+  { id: 'm0', title: 'Pengelolaan keuangan', description: 'Kuis modul dan tugas praktik (contoh: foto pembukuan)', status: 'belum_diunggah' },
+  { id: 'm1', title: 'Kualitas produk', description: 'Kuis modul dan tugas praktik (standar mutu pengolahan)', status: 'belum_diunggah' },
+  { id: 'm2', title: 'Pengemasan', description: 'Kuis modul dan tugas praktik (kemasan higienis tahan lama)', status: 'belum_diunggah' },
+  { id: 'm3', title: 'Branding', description: 'Kuis modul dan tugas praktik (label merk dan identitas)', status: 'belum_diunggah' },
+  { id: 'm4', title: 'Legalitas usaha', description: 'Kuis modul dan tugas praktik (NIB & P-IRT dasar)', status: 'belum_diunggah' },
+  { id: 'm5', title: 'Pemasaran digital', description: 'Kuis modul dan tugas praktik (katalog WhatsApp/Medsos)', status: 'belum_diunggah' },
+];
+
+const cleanChannels: MarketChannel[] = [
+  { id: 'c0', name: 'Toko lokal', description: 'Tangkapan layar akun atau foto toko, atau bukti transaksi pertama', status: 'belum_diunggah' },
+  { id: 'c1', name: 'Media sosial', description: 'Tangkapan layar akun medsos (Instagram/WhatsApp Business)', status: 'belum_diunggah' },
+  { id: 'c2', name: 'Reseller', description: 'Daftar mitra agen/reseller warung terdekat', status: 'belum_diunggah' },
+  { id: 'c3', name: 'Komunitas', description: 'Jaringan grup pengajian/arisan/koperasi tani', status: 'belum_diunggah' },
+  { id: 'c4', name: 'Marketplace', description: 'Toko online di platform digital populer', status: 'belum_diunggah' },
+];
+
 const defaultDocuments: DocumentItem[] = [
   { id: 'ktp', name: 'KTP', filename: 'bukti_ktp.jpg', status: 'terverifikasi', notes: 'Foto KTP jelas dan tidak terpotong' },
   { id: 'kk', name: 'Kartu Keluarga', filename: 'bukti_kk.jpg', status: 'terverifikasi', notes: 'Untuk memverifikasi anggota keluarga' },
@@ -270,14 +311,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         if (mappingData) {
           setBusinessProfile(prev => ({
             ...prev,
-            businessName: mappingData.nama_usaha || prev.businessName,
-            businessType: mappingData.kategori_usaha || prev.businessType,
-            monthlyRevenue: Number(mappingData.omzet_bulanan) || prev.monthlyRevenue,
-            calculatedScore: mappingData.skor_potensi || prev.calculatedScore,
+            businessName: mappingData.nama_usaha || '',
+            businessType: mappingData.kategori_usaha || '',
+            monthlyRevenue: Number(mappingData.omzet_bulanan) || 0,
+            calculatedScore: mappingData.skor_potensi || 30,
           }));
           if (mappingData.status_pengajuan) {
             setSubmissionStatus(mappingData.status_pengajuan);
           }
+        } else if (currentUser.email.toLowerCase() !== 'faizah@contoh.id') {
+          // Akun baru yang belum submit: bersih dan kosong tanpa data otomatis
+          setBusinessProfile(emptyBusinessProfile(currentUser.name));
+          setSubmissionStatus('draft');
         }
       }
 
@@ -380,7 +425,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setEvidenceQueue(prev => [
       {
         id: `ev-${Date.now()}`,
-        applicantName: 'Faizah E.',
+        applicantName: currentUser?.name || businessProfile.name,
         title: id.toUpperCase(),
         filename,
         type: 'dokumen',
@@ -406,7 +451,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setEvidenceQueue(prev => [
       {
         id: `ev-task-${Date.now()}`,
-        applicantName: 'Faizah E.',
+        applicantName: currentUser?.name || businessProfile.name,
         title: `Tugas Modul: ${id}`,
         filename,
         type: 'tugas',
@@ -428,7 +473,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setEvidenceQueue(prev => [
       {
         id: `ev-channel-${Date.now()}`,
-        applicantName: 'Faizah E.',
+        applicantName: currentUser?.name || businessProfile.name,
         title: `Bukti Saluran Pasar: ${id}`,
         filename,
         type: 'pasar',
@@ -449,7 +494,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setEvidenceQueue(prev => [
       {
         id: `ev-rep-${Date.now()}`,
-        applicantName: 'Faizah E.',
+        applicantName: currentUser?.name || businessProfile.name,
         title: `Laporan Omzet: ${report.month}`,
         filename: report.receiptFilename || 'bukti_nota.jpg',
         type: 'laporan',
@@ -644,6 +689,30 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       email: targetEmail,
       name: targetName,
     });
+
+    if (newRole === 'mustahik') {
+      if (targetEmail.toLowerCase() === 'faizah@contoh.id') {
+        setBusinessProfile(defaultProfile);
+        setDocuments(defaultDocuments);
+        setSubmissionStatus('diajukan');
+        setCurrent6MStep(1);
+        setApplicationStep(1);
+        setMentoringModules(defaultModules);
+        setMarketChannels(defaultChannels);
+        setMonthlyReports(defaultReports);
+      } else {
+        // Akun mustahik baru: Mulai dari bersih, kosong, status draft
+        setBusinessProfile(emptyBusinessProfile(targetName));
+        setDocuments(emptyDocuments);
+        setSubmissionStatus('draft');
+        setCurrent6MStep(1);
+        setApplicationStep(0);
+        setMentoringModules(cleanModules);
+        setMarketChannels(cleanChannels);
+        setMonthlyReports([]);
+      }
+    }
+
     setIsLoggedIn(true);
   };
 
@@ -654,7 +723,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Batalkan Pengajuan (Withdraw) ke Supabase & Local State
   const cancelMustahikSubmission = async () => {
     setSubmissionStatus('dibatalkan');
-    setApplicants(prev => prev.map(a => a.id === 'app-faizah' ? { ...a, status: 'Ditolak' } : a));
+    const applicantName = (currentUser?.name || businessProfile.name).toLowerCase();
+    setApplicants(prev => prev.map(a => a.name.toLowerCase() === applicantName || a.id.includes(applicantName) ? { ...a, status: 'Ditolak' } : a));
     try {
       const { withdrawSubmission } = await import('@/services/zakatService');
       if (currentUser?.email) {
@@ -668,7 +738,33 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Simpan / Perbarui Data Usaha (Edit) ke Supabase & Local State
   const saveMustahikMappingToCloud = async () => {
     setSubmissionStatus('diajukan');
-    setApplicants(prev => prev.map(a => a.id === 'app-faizah' ? { ...a, businessName: businessProfile.businessName, potentialScore: businessProfile.calculatedScore, status: 'Baru' } : a));
+    setApplicationStep(1);
+    const applicantName = currentUser?.name || businessProfile.name;
+    const applicantId = `app-${currentUser?.email?.replace(/[^a-zA-Z0-9]/g, '_') || 'user'}`;
+
+    setApplicants(prev => {
+      const existingIdx = prev.findIndex(a => a.name.toLowerCase() === applicantName.toLowerCase() || a.id === applicantId);
+      const updatedApplicant: ApplicantItem = {
+        id: applicantId,
+        name: applicantName,
+        businessName: businessProfile.businessName || 'Usaha Binaan Baru',
+        businessType: businessProfile.businessType || 'Bantuan Zakat Produktif',
+        location: businessProfile.address ? businessProfile.address.split(',')[0] : 'Malang',
+        documentsStatus: 'Dokumen berkas terunggah',
+        plannedUsage: `Bantuan Modal Rp3.500.000`,
+        potentialScore: businessProfile.calculatedScore,
+        status: 'Baru',
+        submissionDate: 'Hari ini',
+      };
+      if (existingIdx >= 0) {
+        const next = [...prev];
+        next[existingIdx] = updatedApplicant;
+        return next;
+      } else {
+        return [updatedApplicant, ...prev];
+      }
+    });
+
     try {
       const { saveOrUpdateMapping } = await import('@/services/zakatService');
       if (currentUser?.email) {

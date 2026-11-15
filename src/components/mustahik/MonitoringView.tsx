@@ -186,7 +186,7 @@ export const MonitoringView: React.FC = () => {
                 </span>
               </div>
               <p className="text-[11px] text-slate-500">
-                Foto nota pembelian jagung atau kuitansi penjualan.
+                Foto nota belanja bahan baku atau kuitansi transaksi penjualan.
               </p>
               <div className="flex items-center justify-between pt-1">
                 <span className="text-[11px] font-mono text-slate-700 bg-white border border-slate-200 px-2 py-0.5 rounded">

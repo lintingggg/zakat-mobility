@@ -82,6 +82,7 @@ export const MappingView: React.FC = () => {
               <input
                 type="text"
                 value={businessProfile.businessName}
+                placeholder="Contoh: Keripik Jagung Renyah, Warung Berkah"
                 onChange={e => updateBusinessProfile({ businessName: e.target.value })}
                 className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:border-emerald-700"
                 required
@@ -95,6 +96,7 @@ export const MappingView: React.FC = () => {
               <input
                 type="text"
                 value={businessProfile.businessType}
+                placeholder="Contoh: Kuliner olahan pangan, Pertanian, Konveksi"
                 onChange={e => updateBusinessProfile({ businessType: e.target.value })}
                 className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:border-emerald-700"
                 required
@@ -109,6 +111,7 @@ export const MappingView: React.FC = () => {
                 <input
                   type="text"
                   value={businessProfile.duration}
+                  placeholder="Contoh: 1 tahun, 6 bulan"
                   onChange={e => updateBusinessProfile({ duration: e.target.value })}
                   className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:border-emerald-700"
                   required
@@ -121,7 +124,8 @@ export const MappingView: React.FC = () => {
                 </label>
                 <input
                   type="text"
-                  value={`Rp${businessProfile.monthlyRevenue.toLocaleString('id-ID')}`}
+                  value={businessProfile.monthlyRevenue > 0 ? `Rp${businessProfile.monthlyRevenue.toLocaleString('id-ID')}` : ''}
+                  placeholder="Rp0"
                   onChange={e => {
                     const num = parseInt(e.target.value.replace(/\D/g, ''), 10) || 0;
                     updateBusinessProfile({ monthlyRevenue: num });
@@ -139,6 +143,7 @@ export const MappingView: React.FC = () => {
               <input
                 type="text"
                 value={businessProfile.address}
+                placeholder="Contoh: Jl. Raya Poncokusumo No. 15, RT 03/RW 02, Malang"
                 onChange={e => updateBusinessProfile({ address: e.target.value })}
                 className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:border-emerald-700"
                 required
@@ -221,16 +226,36 @@ export const MappingView: React.FC = () => {
           <div className="space-y-3">
             {/* Status Pengajuan Banner */}
             <div className={`p-3.5 rounded-xl border text-xs flex items-center justify-between ${
-              submissionStatus === 'diajukan'
+              submissionStatus === 'draft'
+                ? 'bg-slate-50 border-slate-200 text-slate-800'
+                : submissionStatus === 'diajukan'
+                ? 'bg-amber-50 border-amber-200 text-amber-900'
+                : submissionStatus === 'disetujui'
                 ? 'bg-emerald-50 border-emerald-200 text-emerald-900'
-                : 'bg-amber-50 border-amber-200 text-amber-900'
+                : submissionStatus === 'dibatalkan'
+                ? 'bg-red-50 border-red-200 text-red-900'
+                : 'bg-slate-50 border-slate-200 text-slate-700'
             }`}>
               <div className="flex items-center gap-2">
-                <span className={`w-2 h-2 rounded-full ${submissionStatus === 'diajukan' ? 'bg-emerald-600 animate-pulse' : 'bg-amber-600'}`} />
+                <span className={`w-2 h-2 rounded-full ${
+                  submissionStatus === 'diajukan'
+                    ? 'bg-amber-500 animate-pulse'
+                    : submissionStatus === 'disetujui'
+                    ? 'bg-emerald-600'
+                    : submissionStatus === 'dibatalkan'
+                    ? 'bg-red-500'
+                    : 'bg-slate-400'
+                }`} />
                 <span className="font-semibold">
-                  {submissionStatus === 'diajukan'
+                  {submissionStatus === 'draft'
+                    ? 'Status: Draf Profil Usaha (Belum Diajukan ke Amil)'
+                    : submissionStatus === 'diajukan'
                     ? 'Status: Berkas Diajukan ke Amil (Menunggu Verifikasi)'
-                    : 'Status: Pengajuan Dibatalkan oleh Pemohon'}
+                    : submissionStatus === 'disetujui'
+                    ? 'Status: Pengajuan Disetujui Amil BAZNAS'
+                    : submissionStatus === 'dibatalkan'
+                    ? 'Status: Pengajuan Dibatalkan oleh Pemohon'
+                    : 'Status: Menunggu'}
                 </span>
               </div>
               <span className="text-[10px] font-mono uppercase bg-white/80 px-2 py-0.5 rounded border border-slate-200">
@@ -246,33 +271,46 @@ export const MappingView: React.FC = () => {
             )}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-              <button
-                type="button"
-                onClick={handleSave}
-                disabled={isUpdating}
-                className="btn-primary w-full text-xs"
-              >
-                <span>{isUpdating ? 'Menyimpan...' : 'Perbarui Data (Edit)'}</span>
-              </button>
-
-              {submissionStatus === 'diajukan' ? (
-                <button
-                  type="button"
-                  onClick={handleCancelSubmission}
-                  disabled={isUpdating}
-                  className="btn-secondary w-full text-xs border-red-300 text-red-700 hover:bg-red-50"
-                >
-                  Batalkan Pengajuan
-                </button>
-              ) : (
+              {submissionStatus === 'draft' ? (
                 <button
                   type="button"
                   onClick={handleSave}
                   disabled={isUpdating}
-                  className="btn-primary w-full text-xs"
+                  className="btn-primary w-full text-xs col-span-1 sm:col-span-2"
                 >
-                  Ajukan Kembali
+                  <span>{isUpdating ? 'Mengirim...' : 'Kirim Pengajuan Pemetaan Usaha'}</span>
                 </button>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    onClick={handleSave}
+                    disabled={isUpdating}
+                    className="btn-primary w-full text-xs"
+                  >
+                    <span>{isUpdating ? 'Menyimpan...' : 'Perbarui Data (Edit)'}</span>
+                  </button>
+
+                  {submissionStatus === 'diajukan' ? (
+                    <button
+                      type="button"
+                      onClick={handleCancelSubmission}
+                      disabled={isUpdating}
+                      className="btn-secondary w-full text-xs border-red-300 text-red-700 hover:bg-red-50"
+                    >
+                      Batalkan Pengajuan
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={handleSave}
+                      disabled={isUpdating}
+                      className="btn-primary w-full text-xs"
+                    >
+                      Ajukan Kembali
+                    </button>
+                  )}
+                </>
               )}
             </div>
 

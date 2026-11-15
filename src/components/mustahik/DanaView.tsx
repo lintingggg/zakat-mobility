@@ -5,7 +5,7 @@ import { useApp } from '@/context/AppContext';
 import { ArrowDownRight, Clock } from 'lucide-react';
 
 export const DanaView: React.FC = () => {
-  const { applicationStep, zakatPackage } = useApp();
+  const { applicationStep, zakatPackage, currentUser, businessProfile } = useApp();
   const isDisbursed = applicationStep === 4;
   const isApproved = applicationStep >= 3;
 
@@ -101,8 +101,8 @@ export const DanaView: React.FC = () => {
                       <span className="font-bold text-slate-900">Transfer Modal Bahan Baku</span>
                       <span className="text-emerald-800 font-mono font-bold">+Rp3.000.000</span>
                     </div>
-                    <p className="text-xs text-slate-500 mt-0.5">Cadangan bahan baku jagung 3 bulan</p>
-                    <span className="text-[10px] text-slate-400 font-mono mt-1 block">Rekening BSI ***412 a.n. Faizah Elysia</span>
+                    <p className="text-xs text-slate-500 mt-0.5">Cadangan bahan baku operasional 3 bulan</p>
+                    <span className="text-[10px] text-slate-400 font-mono mt-1 block">Rekening BSI ***412 a.n. {currentUser?.name || businessProfile.name}</span>
                   </div>
                 </div>
               </div>

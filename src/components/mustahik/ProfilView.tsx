@@ -5,7 +5,16 @@ import { useApp } from '@/context/AppContext';
 import { Building, MapPin, Mail, Award, LogOut } from 'lucide-react';
 
 export const ProfilView: React.FC = () => {
-  const { businessProfile, logout } = useApp();
+  const { businessProfile, currentUser, logout } = useApp();
+
+  const displayName = currentUser?.name || businessProfile.name;
+  const initials = displayName
+    .split(' ')
+    .map(n => n[0])
+    .filter(Boolean)
+    .slice(0, 2)
+    .join('')
+    .toUpperCase() || 'MU';
 
   return (
     <div className="space-y-6 taste-enter">
@@ -21,17 +30,19 @@ export const ProfilView: React.FC = () => {
         <div className="md:col-span-5 space-y-4">
           <div className="taste-card bg-white rounded-2xl p-6 border border-slate-200 flex flex-col items-center text-center space-y-3">
             <div className="w-16 h-16 rounded-full bg-[#1A4331] text-white font-mono font-bold text-lg flex items-center justify-center shadow-xs">
-              FE
+              {initials}
             </div>
             <div>
               <div className="flex items-center justify-center gap-2">
-                <h3 className="text-base font-bold text-[#111827]">{businessProfile.name}</h3>
+                <h3 className="text-base font-bold text-[#111827]">{displayName}</h3>
                 <span className="pill-verified text-[10px]">
                   Mustahik
                 </span>
               </div>
-              <p className="text-xs text-slate-500 mt-0.5">{businessProfile.businessName}</p>
-              <span className="text-[11px] text-slate-400 font-mono mt-1 block">ID: ZM-2026-0891</span>
+              <p className="text-xs text-slate-500 mt-0.5">{businessProfile.businessName || 'Profil usaha belum diisi'}</p>
+              <span className="text-[11px] text-slate-400 font-mono mt-1 block">
+                ID: ZM-{currentUser?.email ? currentUser.email.slice(0, 4).toUpperCase() : '2026'}-0891
+              </span>
             </div>
 
             <button
@@ -56,7 +67,9 @@ export const ProfilView: React.FC = () => {
                 <Building className="w-4 h-4 text-slate-400 shrink-0" />
                 <div>
                   <span className="text-slate-400 text-[10px] block">Bidang Usaha</span>
-                  <strong className="text-slate-900">{businessProfile.businessType} ({businessProfile.duration})</strong>
+                  <strong className="text-slate-900">
+                    {businessProfile.businessType ? `${businessProfile.businessType} (${businessProfile.duration || 'Lama usaha belum dicatat'})` : 'Belum dilengkapi (Isi di 1M Mapping)'}
+                  </strong>
                 </div>
               </div>
 
@@ -64,7 +77,7 @@ export const ProfilView: React.FC = () => {
                 <MapPin className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
                 <div>
                   <span className="text-slate-400 text-[10px] block">Lokasi Produksi</span>
-                  <strong className="text-slate-900">{businessProfile.address}</strong>
+                  <strong className="text-slate-900">{businessProfile.address || 'Belum diisi'}</strong>
                 </div>
               </div>
 
@@ -72,7 +85,7 @@ export const ProfilView: React.FC = () => {
                 <Mail className="w-4 h-4 text-slate-400 shrink-0" />
                 <div>
                   <span className="text-slate-400 text-[10px] block">Kontak Email</span>
-                  <strong className="text-slate-900 font-mono">faizah@contoh.id</strong>
+                  <strong className="text-slate-900 font-mono">{currentUser?.email || 'email@contoh.id'}</strong>
                 </div>
               </div>
 

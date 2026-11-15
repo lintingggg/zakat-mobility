@@ -6,6 +6,7 @@ import { ArrowLeft, CheckCircle2, Check, Play } from 'lucide-react';
 
 export const MatchingView: React.FC = () => {
   const {
+    businessProfile,
     zakatPackage,
     applicationStep,
     simulateNextStep,
@@ -98,7 +99,9 @@ export const MatchingView: React.FC = () => {
               Rencana Penggunaan Alokasi
             </h3>
             <p className="text-xs text-slate-700 bg-slate-50 p-3 rounded-xl border border-slate-200 leading-relaxed font-mono">
-              Mesin pipil jagung kapasitas 150 kg/jam dan cadangan modal bahan baku jagung untuk 3 bulan operasional.
+              {businessProfile.businessName 
+                ? `Pengadaan peralatan produksi ${businessProfile.businessName} dan cadangan modal bahan baku operasional.` 
+                : 'Alokasi pengadaan peralatan usaha produktif dan modal bahan baku operasional binaan.'}
             </p>
           </div>
 
