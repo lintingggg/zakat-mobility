@@ -83,11 +83,11 @@ export const MonitoringView: React.FC = () => {
               </div>
 
               <div className="flex flex-col items-center gap-2 flex-1 max-w-[80px]">
-                <span className="text-xs text-emerald-900 font-mono font-bold">Rp4.2 jt</span>
-                <div className="w-full bg-emerald-800 rounded-t-lg h-40 transition-all relative">
-                  <span className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-amber-400 rounded-full" />
+                <span className="text-xs text-[#1A4331] font-mono font-bold">Rp4.2 jt</span>
+                <div className="w-full bg-[#1A4331] rounded-t-lg h-40 transition-all relative">
+                  <span className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-2 h-2 bg-[#F59E0B] rounded-full" />
                 </div>
-                <span className="text-xs font-bold text-emerald-950">Jul (Baru)</span>
+                <span className="text-xs font-bold text-[#111827]">Jul (Baru)</span>
               </div>
             </div>
           </div>
@@ -239,7 +239,7 @@ export const MonitoringView: React.FC = () => {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="taste-btn w-full py-3 bg-emerald-800 hover:bg-emerald-900 text-white text-xs font-semibold rounded-xl shadow-xs"
+              className="btn-primary w-full text-xs"
             >
               {isSubmitting ? 'Mengirim...' : 'Kirim Laporan Jul 2026'}
             </button>
@@ -247,7 +247,7 @@ export const MonitoringView: React.FC = () => {
             <button
               type="button"
               onClick={() => setCurrent6MStep(6)}
-              className="taste-btn w-full py-3 bg-white hover:bg-slate-50 text-slate-800 text-xs font-bold rounded-xl border border-slate-300 flex items-center justify-center gap-2"
+              className="btn-secondary w-full text-xs text-[#111827] border-slate-300 hover:bg-slate-100"
             >
               <span>Lanjut ke Tahap 6M (Moving Up)</span>
               <span>→</span>

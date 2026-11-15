@@ -24,7 +24,7 @@ export const AmilDashboard: React.FC = () => {
             Ringkasan pemantauan dan pengelolaan program pendayagunaan zakat produktif 6M.
           </p>
         </div>
-        <span className="text-xs font-semibold px-2.5 py-1 rounded bg-teal-50 text-teal-800 border border-teal-200 self-start sm:self-auto">
+        <span className="pill-verified self-start sm:self-auto">
           BAZNAS Kabupaten Malang
         </span>
       </div>
@@ -32,22 +32,22 @@ export const AmilDashboard: React.FC = () => {
       {/* Banner Bukti Menunggu Verifikasi */}
       <div
         onClick={() => setAmilTab('verifikasi')}
-        className="taste-card bg-white border border-slate-300 p-4 sm:p-5 rounded-2xl flex items-center justify-between cursor-pointer"
+        className="taste-card bg-white border border-slate-200 p-4 sm:p-5 rounded-2xl flex items-center justify-between cursor-pointer shadow-xs hover:border-[#1A4331]"
       >
         <div className="flex items-center gap-3.5">
-          <div className="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center font-mono font-extrabold text-sm">
+          <div className="w-10 h-10 rounded-full bg-[#1A4331] text-white flex items-center justify-center font-mono font-extrabold text-sm shadow-2xs">
             {pendingEvidenceCount}
           </div>
           <div>
-            <span className="text-sm font-bold text-slate-900 block">
+            <span className="text-sm font-bold text-[#111827] block">
               {pendingEvidenceCount} Berkas Menunggu Verifikasi Validitas
             </span>
-            <span className="text-xs text-slate-500">
+            <span className="text-xs text-[#6B7280]">
               Dokumen SKTM, foto tempat usaha, dan laporan finansial bulanan mustahik.
             </span>
           </div>
         </div>
-        <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800 shrink-0">
+        <div className="flex items-center gap-1.5 text-xs font-bold text-[#1A4331] shrink-0">
           <span className="hidden sm:inline">Buka Antrean</span>
           <ArrowRight className="w-4 h-4" />
         </div>

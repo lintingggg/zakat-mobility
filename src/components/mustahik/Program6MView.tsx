@@ -24,28 +24,28 @@ export const Program6MView: React.FC = () => {
   return (
     <div className="space-y-6 taste-enter">
       {/* 6M Horizontal Navigation Bar */}
-      <div className="bg-white rounded-2xl p-2 border border-slate-200">
-        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
+      <div className="bg-white rounded-full p-1.5 border border-slate-200 shadow-xs">
+        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 px-1">
           {steps.map(s => {
             const isActive = current6MStep === s.num;
             return (
               <button
                 key={s.num}
                 onClick={() => setCurrent6MStep(s.num)}
-                className={`taste-btn px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all shrink-0 flex items-center gap-1.5 ${
+                className={`taste-btn px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all shrink-0 flex items-center gap-1.5 ${
                   isActive
-                    ? 'bg-slate-900 text-white shadow-xs'
-                    : 'bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-900 border border-slate-200'
+                    ? 'bg-[#1A4331] text-white shadow-2xs font-bold'
+                    : 'bg-[#F8F9FA] text-[#6B7280] hover:bg-[#E8F3ED] hover:text-[#1A4331]'
                 }`}
               >
-                <span className={`text-[10px] px-1.5 py-0.2 rounded font-mono font-bold ${
-                  isActive ? 'bg-slate-800 text-emerald-300' : 'bg-slate-200 text-slate-600'
+                <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono font-bold ${
+                  isActive ? 'bg-white/20 text-white' : 'bg-slate-200 text-[#6B7280]'
                 }`}>
                   {s.short}
                 </span>
                 <span>{s.label}</span>
-                <span className={`hidden lg:inline text-[10px] font-normal opacity-70 ${
-                  isActive ? 'text-slate-300' : 'text-slate-400'
+                <span className={`hidden lg:inline text-[10px] font-normal opacity-80 ${
+                  isActive ? 'text-[#A3B8AD]' : 'text-[#6B7280]'
                 }`}>
                   · {s.desc}
                 </span>

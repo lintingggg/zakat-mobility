@@ -24,21 +24,21 @@ export const DanaView: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-start">
         {/* Left Column: Balance & Pos Dana */}
         <div className="md:col-span-6 space-y-5">
-          {/* Main Balance Card: Solid Architectural Dark Panel */}
-          <div className="taste-card bg-slate-900 text-white rounded-2xl p-6 border border-slate-800">
-            <span className="text-xs text-slate-400 font-mono uppercase tracking-wider">
+          {/* Main Balance Card: Primary Dark Green #1A4331 per Guideline */}
+          <div className="taste-card bg-[#1A4331] text-white rounded-3xl p-6 sm:p-7 shadow-sm">
+            <span className="text-xs text-[#A3B8AD] font-semibold uppercase tracking-wider block">
               Total Dana Bantuan Produktif
             </span>
-            <div className="text-3xl sm:text-4xl font-extrabold tracking-tight mt-1 mb-2 font-mono">
-              Rp {isDisbursed ? '7.000.000' : isApproved ? '7.000.000' : '0'}
+            <div className="text-3xl sm:text-4xl font-extrabold tracking-tight mt-1 mb-3 text-white">
+              Rp {isDisbursed ? '7.000.000' : isApproved ? '7.000.000' : '3.500.000'}
             </div>
             <div className="flex items-center gap-2 text-xs">
-              <span className={`px-2.5 py-0.5 rounded border font-mono ${
+              <span className={`px-3 py-1 rounded-full font-semibold border ${
                 isDisbursed
-                  ? 'bg-emerald-950 text-emerald-300 border-emerald-800'
+                  ? 'bg-white/20 text-white border-white/30'
                   : isApproved
-                  ? 'bg-teal-950 text-teal-300 border-teal-800'
-                  : 'bg-slate-800 text-slate-300 border-slate-700'
+                  ? 'bg-emerald-500/20 text-emerald-200 border-emerald-400'
+                  : 'bg-amber-400/20 text-amber-200 border-amber-300'
               }`}>
                 Status: {isDisbursed ? 'Disalurkan Penuh' : isApproved ? 'Siap Cair' : 'Menunggu Persetujuan Amil'}
               </span>

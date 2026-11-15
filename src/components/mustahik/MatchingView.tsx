@@ -121,9 +121,7 @@ export const MatchingView: React.FC = () => {
                       <span className="text-slate-800 font-medium">{doc.name}</span>
                     </div>
                     <span
-                      className={`text-[10px] font-semibold px-2 py-0.5 rounded border ${
-                        isVerified ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-amber-50 text-amber-800 border-amber-200'
-                      }`}
+                      className={isVerified ? 'pill-verified' : 'pill-waiting'}
                     >
                       {isVerified ? 'Terverifikasi' : 'Menunggu verifikasi'}
                     </span>
@@ -136,12 +134,12 @@ export const MatchingView: React.FC = () => {
 
         {/* Right Column: Status Pengajuan Stepper */}
         <div className="md:col-span-6 space-y-5">
-          <div className="taste-card bg-white rounded-2xl p-5 border border-slate-200 space-y-4">
+          <div className="taste-card bg-white rounded-2xl p-5 border border-slate-200 space-y-4 shadow-xs">
             <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-              <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+              <h3 className="text-xs font-bold text-[#111827] uppercase tracking-wider">
                 Status Alur Persetujuan
               </h3>
-              <span className="text-xs font-mono text-slate-500 font-medium">
+              <span className="text-xs font-mono text-[#6B7280] font-medium">
                 Langkah {applicationStep} / 4
               </span>
             </div>
@@ -157,8 +155,8 @@ export const MatchingView: React.FC = () => {
                     <div
                       className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 mt-0.5 ${
                         isPassed
-                          ? 'bg-emerald-800 text-white'
-                          : 'bg-slate-200 text-slate-500'
+                          ? 'bg-[#1A4331] text-white shadow-2xs'
+                          : 'bg-slate-200 text-[#6B7280]'
                       }`}
                     >
                       {isPassed ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : s.num}
@@ -169,18 +167,18 @@ export const MatchingView: React.FC = () => {
                       <div className="flex items-center justify-between">
                         <h4
                           className={`text-xs font-bold ${
-                            isPassed ? 'text-slate-900' : 'text-slate-400'
+                            isPassed ? 'text-[#111827]' : 'text-[#6B7280]'
                           }`}
                         >
                           {s.title}
                         </h4>
                         {isCurrent && (
-                          <span className="text-[10px] bg-slate-900 text-white px-2 py-0.5 rounded font-mono font-semibold">
+                          <span className="text-[10px] bg-[#1A4331] text-white px-2.5 py-0.5 rounded-full font-mono font-bold">
                             Aktif
                           </span>
                         )}
                       </div>
-                      <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                      <p className="text-xs text-[#6B7280] mt-1 leading-relaxed">
                         {s.desc}
                       </p>
                     </div>
@@ -193,15 +191,15 @@ export const MatchingView: React.FC = () => {
             <div className="pt-3 border-t border-slate-100 space-y-2">
               <button
                 onClick={simulateNextStep}
-                className="taste-btn w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold rounded-xl border border-slate-300 flex items-center justify-center gap-2"
+                className="btn-secondary w-full text-xs text-[#1A4331] border-[#1A4331] hover:bg-[#E8F3ED]"
               >
-                <Play className="w-3.5 h-3.5 text-emerald-700" />
-                Simulasikan Langkah Lembaga
+                <Play className="w-3.5 h-3.5 text-[#1A4331]" />
+                <span>Simulasikan Langkah Lembaga</span>
               </button>
               <button
                 type="button"
                 onClick={() => setCurrent6MStep(3)}
-                className="taste-btn w-full py-3 bg-white hover:bg-slate-50 text-slate-800 text-xs font-bold rounded-xl border border-slate-300 flex items-center justify-center gap-2"
+                className="btn-secondary w-full text-xs text-[#111827] border-slate-300 hover:bg-slate-100"
               >
                 <span>Lanjut ke Tahap 3M (Mentoring)</span>
                 <span>→</span>

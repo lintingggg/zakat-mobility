@@ -74,28 +74,28 @@ export const AuthView: React.FC = () => {
     }
   };
 
-  // STEP 1: Onboarding Screen (Direct & Punchy, No AI-Slop)
+  // STEP 1: Onboarding Screen (Direct & Punchy per Guideline)
   if (step === 'onboarding') {
     return (
-      <div className="max-w-md mx-auto my-8 bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between min-h-[520px] text-slate-900 taste-enter">
+      <div className="max-w-md mx-auto my-8 bg-white p-7 sm:p-9 rounded-3xl border border-slate-200 shadow-xs flex flex-col justify-between min-h-[530px] text-[#111827] taste-enter">
         <div className="pt-6 text-center flex flex-col items-center">
-          <div className="w-20 h-20 rounded-2xl bg-slate-900 text-white flex items-center justify-center mb-6 shadow-xs">
-            <CircleDollarSign className="w-10 h-10 stroke-[2] text-emerald-400" />
+          <div className="w-20 h-20 rounded-full bg-[#1A4331] text-white flex items-center justify-center mb-6 shadow-sm">
+            <CircleDollarSign className="w-10 h-10 stroke-[2] text-[#E8F3ED]" />
           </div>
 
-          <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-500 bg-slate-100 px-3 py-1 rounded border border-slate-200 mb-3">
+          <span className="pill-verified mb-3">
             Sistem Penyaluran Zakat Produktif
           </span>
 
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 mb-3 tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-[#111827] mb-3 tracking-tight">
             Zakat sebagai Titik Awal
           </h1>
-          <p className="text-slate-600 text-xs sm:text-sm leading-relaxed max-w-xs mx-auto">
+          <p className="text-[#6B7280] text-xs sm:text-sm leading-relaxed max-w-xs mx-auto">
             Bantuan modal alat dan pendampingan bertahap untuk usaha mikro. Dinilai berdasarkan skoring potensi, dipantau melalui 6 tahap hingga mandiri.
           </p>
 
           <div className="flex items-center gap-2 justify-center mt-8">
-            <span className="w-6 h-1.5 rounded-full bg-slate-900" />
+            <span className="w-6 h-1.5 rounded-full bg-[#1A4331]" />
             <span className="w-2 h-1.5 rounded-full bg-slate-200" />
           </div>
         </div>
@@ -103,14 +103,14 @@ export const AuthView: React.FC = () => {
         <div className="space-y-2.5 pt-8 w-full">
           <button
             onClick={() => setStep('auth')}
-            className="taste-btn w-full py-3 bg-emerald-800 hover:bg-emerald-900 text-white font-semibold text-xs sm:text-sm rounded-xl flex items-center justify-center gap-2 shadow-xs"
+            className="btn-primary w-full text-xs sm:text-sm"
           >
-            Lanjut ke Pilihan Akun
+            <span>Lanjut ke Pilihan Akun</span>
             <ArrowRight className="w-4 h-4" />
           </button>
           <button
             onClick={() => setStep('auth')}
-            className="taste-btn w-full py-2 text-slate-500 hover:text-slate-800 text-xs font-semibold text-center"
+            className="taste-btn w-full py-2 text-[#6B7280] hover:text-[#111827] text-xs font-semibold text-center"
           >
             Lewati
           </button>
@@ -121,22 +121,22 @@ export const AuthView: React.FC = () => {
 
   // STEP 2: Masuk / Buat Akun
   return (
-    <div className="max-w-md mx-auto my-8 bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between text-slate-900 taste-enter">
+    <div className="max-w-md mx-auto my-8 bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-xs flex flex-col justify-between text-[#111827] taste-enter">
       <div>
         <div className="mb-5">
-          <h2 className="text-2xl font-bold text-slate-900 tracking-tight">
+          <h2 className="text-2xl font-bold text-[#111827] tracking-tight">
             {mode === 'masuk' ? 'Akses Akun' : 'Pendaftaran Binaan'}
           </h2>
-          <p className="text-slate-500 text-xs mt-0.5">Pilih peran pengguna untuk masuk ke sistem.</p>
+          <p className="text-[#6B7280] text-xs mt-0.5">Pilih peran pengguna untuk masuk ke sistem.</p>
         </div>
 
         {/* Tab Masuk / Daftar */}
-        <div className="grid grid-cols-2 bg-slate-100 p-1 rounded-xl mb-4 border border-slate-200">
+        <div className="grid grid-cols-2 bg-slate-100 p-1 rounded-full mb-4 border border-slate-200">
           <button
             type="button"
             onClick={() => { setMode('masuk'); setAuthNotice(null); }}
-            className={`taste-btn py-1.5 text-xs font-bold rounded-lg transition-all ${
-              mode === 'masuk' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+            className={`taste-btn py-1.5 text-xs font-bold rounded-full transition-all ${
+              mode === 'masuk' ? 'bg-[#1A4331] text-white shadow-2xs' : 'text-[#6B7280] hover:text-[#111827]'
             }`}
           >
             Masuk
@@ -144,8 +144,8 @@ export const AuthView: React.FC = () => {
           <button
             type="button"
             onClick={() => { setMode('daftar'); setAuthNotice(null); }}
-            className={`taste-btn py-1.5 text-xs font-bold rounded-lg transition-all ${
-              mode === 'daftar' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+            className={`taste-btn py-1.5 text-xs font-bold rounded-full transition-all ${
+              mode === 'daftar' ? 'bg-[#1A4331] text-white shadow-2xs' : 'text-[#6B7280] hover:text-[#111827]'
             }`}
           >
             Daftar
@@ -161,17 +161,17 @@ export const AuthView: React.FC = () => {
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Masuk sebagai: Mustahik, Amil, Muzakki */}
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+            <label className="block text-xs font-semibold text-[#111827] mb-1.5">
               Peran Pengguna
             </label>
             <div className="grid grid-cols-3 gap-2">
               <button
                 type="button"
                 onClick={() => handleRoleChange('mustahik')}
-                className={`taste-btn py-2.5 px-2 text-xs font-bold rounded-xl border transition-all flex flex-col items-center gap-1 ${
+                className={`taste-btn py-2.5 px-2 text-xs font-bold rounded-2xl border transition-all flex flex-col items-center gap-1 ${
                   selectedRole === 'mustahik'
-                    ? 'bg-emerald-800 text-white border-emerald-800 shadow-xs'
-                    : 'bg-white text-slate-600 border-slate-200 hover:border-slate-400'
+                    ? 'bg-[#1A4331] text-white border-[#1A4331] shadow-xs'
+                    : 'bg-white text-[#6B7280] border-slate-200 hover:border-slate-400'
                 }`}
               >
                 <User className="w-4 h-4" />
@@ -181,10 +181,10 @@ export const AuthView: React.FC = () => {
               <button
                 type="button"
                 onClick={() => handleRoleChange('amil')}
-                className={`taste-btn py-2.5 px-2 text-xs font-bold rounded-xl border transition-all flex flex-col items-center gap-1 ${
+                className={`taste-btn py-2.5 px-2 text-xs font-bold rounded-2xl border transition-all flex flex-col items-center gap-1 ${
                   selectedRole === 'amil'
-                    ? 'bg-teal-800 text-white border-teal-800 shadow-xs'
-                    : 'bg-white text-slate-600 border-slate-200 hover:border-slate-400'
+                    ? 'bg-[#1A4331] text-white border-[#1A4331] shadow-xs'
+                    : 'bg-white text-[#6B7280] border-slate-200 hover:border-slate-400'
                 }`}
               >
                 <Briefcase className="w-4 h-4" />
@@ -194,10 +194,10 @@ export const AuthView: React.FC = () => {
               <button
                 type="button"
                 onClick={() => handleRoleChange('muzakki')}
-                className={`taste-btn py-2.5 px-2 text-xs font-bold rounded-xl border transition-all flex flex-col items-center gap-1 ${
+                className={`taste-btn py-2.5 px-2 text-xs font-bold rounded-2xl border transition-all flex flex-col items-center gap-1 ${
                   selectedRole === 'muzakki'
-                    ? 'bg-slate-800 text-white border-slate-800 shadow-xs'
-                    : 'bg-white text-slate-600 border-slate-200 hover:border-slate-400'
+                    ? 'bg-[#1A4331] text-white border-[#1A4331] shadow-xs'
+                    : 'bg-white text-[#6B7280] border-slate-200 hover:border-slate-400'
                 }`}
               >
                 <HeartHandshake className="w-4 h-4" />
@@ -267,7 +267,7 @@ export const AuthView: React.FC = () => {
           <button
             type="submit"
             disabled={isLoading}
-            className="taste-btn w-full py-3 bg-emerald-800 hover:bg-emerald-900 text-white text-xs font-bold rounded-xl shadow-xs mt-2 flex items-center justify-center gap-2"
+            className="btn-primary w-full text-xs py-3.5 mt-2"
           >
             {isLoading ? (
               <>

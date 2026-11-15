@@ -16,17 +16,17 @@ export const MarketView: React.FC = () => {
   const getChannelIcon = (id: string) => {
     switch (id) {
       case 'c0':
-        return <Store className="w-4 h-4 text-slate-700" />;
+        return <Store className="w-4 h-4 text-[#1A4331]" />;
       case 'c1':
-        return <Share2 className="w-4 h-4 text-slate-700" />;
+        return <Share2 className="w-4 h-4 text-[#1A4331]" />;
       case 'c2':
-        return <Users className="w-4 h-4 text-slate-700" />;
+        return <Users className="w-4 h-4 text-[#1A4331]" />;
       case 'c3':
-        return <Network className="w-4 h-4 text-slate-700" />;
+        return <Network className="w-4 h-4 text-[#1A4331]" />;
       case 'c4':
-        return <ShoppingCart className="w-4 h-4 text-slate-700" />;
+        return <ShoppingCart className="w-4 h-4 text-[#1A4331]" />;
       default:
-        return <Store className="w-4 h-4 text-slate-700" />;
+        return <Store className="w-4 h-4 text-[#1A4331]" />;
     }
   };
 
@@ -35,14 +35,14 @@ export const MarketView: React.FC = () => {
       {/* Top Bar with Back */}
       <div className="flex items-center justify-between pb-3 border-b border-slate-200">
         <div>
-          <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">4M: Market (Saluran Pasar)</h2>
-          <p className="text-xs text-slate-600 mt-0.5">
+          <h2 className="text-xl sm:text-2xl font-bold text-[#111827] tracking-tight">4M: Market (Saluran Pasar)</h2>
+          <p className="text-xs text-[#6B7280] mt-0.5">
             Pencatatan kanal penjualan aktif. Ambang batas mandiri: minimal 3 saluran terverifikasi.
           </p>
         </div>
         <button
           onClick={() => setMustahikTab('beranda')}
-          className="taste-btn px-3 py-1.5 text-slate-600 hover:text-slate-900 rounded-lg hover:bg-slate-100 flex items-center gap-1.5 text-xs font-semibold border border-slate-200"
+          className="taste-btn px-3 py-1.5 text-[#6B7280] hover:text-[#111827] rounded-full hover:bg-slate-100 flex items-center gap-1.5 text-xs font-semibold border border-slate-200"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Kembali</span>
@@ -50,16 +50,16 @@ export const MarketView: React.FC = () => {
       </div>
 
       {/* Saluran Aktif Counter Card */}
-      <div className="taste-card bg-white rounded-2xl p-5 border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div className="taste-card bg-white rounded-2xl p-5 border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
         <div>
-          <span className="text-sm font-bold text-slate-900 block">Kanal Penjualan Aktif</span>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <span className="text-sm font-bold text-[#111827] block">Kanal Penjualan Aktif</span>
+          <p className="text-xs text-[#6B7280] mt-0.5">
             Dihitung aktif setelah bukti transaksi atau etalase toko disetujui amil.
           </p>
         </div>
-        <div className="flex items-baseline gap-2 bg-slate-50 px-4 py-2 rounded-xl border border-slate-200 self-start sm:self-auto">
-          <span className="text-2xl font-mono font-extrabold text-slate-900">{verifiedCount}</span>
-          <span className="text-xs text-slate-500 font-medium">/ target min 3 saluran</span>
+        <div className="flex items-baseline gap-2 bg-[#E8F3ED] px-4 py-2 rounded-xl border border-[#277A4D]/20 self-start sm:self-auto">
+          <span className="text-2xl font-mono font-extrabold text-[#1A4331]">{verifiedCount}</span>
+          <span className="text-xs text-[#277A4D] font-medium">/ target min 3 saluran</span>
         </div>
       </div>
 
@@ -72,44 +72,38 @@ export const MarketView: React.FC = () => {
           return (
             <div
               key={channel.id}
-              className="taste-card bg-white rounded-2xl p-4 border border-slate-200 flex flex-col justify-between space-y-3"
+              className="taste-card bg-white rounded-2xl p-4 border border-slate-200 flex flex-col justify-between space-y-3 shadow-xs"
             >
               <div>
                 <div className="flex items-start justify-between gap-2 mb-2">
                   <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center shrink-0">
+                    <div className="w-8 h-8 rounded-full bg-[#E8F3ED] flex items-center justify-center shrink-0">
                       {getChannelIcon(channel.id)}
                     </div>
                     <div>
-                      <h3 className="text-xs font-bold text-slate-900">{channel.name}</h3>
-                      <span className="text-[10px] text-slate-400 font-mono">Saluran Distribusi</span>
+                      <h3 className="text-xs font-bold text-[#111827]">{channel.name}</h3>
+                      <span className="text-[10px] text-[#6B7280]">Saluran Pemasaran</span>
                     </div>
                   </div>
 
                   <span
-                    className={`text-[10px] font-semibold px-2 py-0.5 rounded border shrink-0 ${
+                    className={
                       isVerified
-                        ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                        ? 'pill-verified shrink-0'
                         : isWaiting
-                        ? 'bg-amber-50 text-amber-800 border-amber-200'
-                        : 'bg-slate-100 text-slate-600 border-slate-200'
-                    }`}
+                        ? 'pill-waiting shrink-0'
+                        : 'text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200 shrink-0'
+                    }
                   >
-                    {isVerified
-                      ? 'Terverifikasi'
-                      : isWaiting
-                      ? 'Menunggu review'
-                      : 'Belum diunggah'}
+                    {isVerified ? 'Aktif' : isWaiting ? 'Menunggu' : 'Belum aktif'}
                   </span>
                 </div>
-                <p className="text-xs text-slate-600 leading-relaxed">
-                  {channel.description}
-                </p>
+                <p className="text-xs text-[#6B7280] leading-relaxed">{channel.description}</p>
               </div>
 
               <div className="pt-2 border-t border-slate-100 space-y-2">
                 {channel.filename && (
-                  <div className="text-[11px] text-emerald-800 font-mono bg-slate-50 px-2 py-1 rounded border border-slate-200">
+                  <div className="text-[11px] text-[#1A4331] font-mono bg-[#E8F3ED] px-2 py-1 rounded-lg border border-[#277A4D]/20">
                     📎 {channel.filename}
                   </div>
                 )}
@@ -117,17 +111,17 @@ export const MarketView: React.FC = () => {
                 {!isVerified && !isWaiting && (
                   <button
                     onClick={() => handleSimulateUpload(channel.id)}
-                    className="taste-btn w-full py-2 bg-slate-50 hover:bg-slate-100 text-slate-800 text-xs font-semibold rounded-xl border border-slate-200 flex items-center justify-center gap-1.5"
+                    className="btn-secondary w-full text-xs py-2"
                   >
                     <UploadCloud className="w-3.5 h-3.5" />
-                    Unggah Bukti Transaksi
+                    <span>Unggah Bukti Transaksi</span>
                   </button>
                 )}
 
                 {isWaiting && (
-                  <div className="text-[11px] text-amber-800 bg-amber-50 px-2.5 py-1.5 rounded-lg border border-amber-200 flex items-center gap-1.5">
+                  <div className="text-[11px] text-[#B45309] bg-[#FEF3C7] px-2.5 py-1.5 rounded-lg border border-amber-200 flex items-center gap-1.5">
                     <Clock className="w-3.5 h-3.5 shrink-0" />
-                    <span>Bukti diunggah. Menunggu verifikasi amil.</span>
+                    <span>Bukti tersimpan. Menunggu verifikasi amil.</span>
                   </div>
                 )}
               </div>
@@ -136,17 +130,12 @@ export const MarketView: React.FC = () => {
         })}
       </div>
 
-      {/* Factual Note: No marketing clichés */}
-      <div className="p-4 bg-white rounded-2xl border border-slate-200 text-slate-600 text-xs leading-relaxed">
-        <strong className="text-slate-900">Catatan Saluran Zakat Mobility:</strong> Platform ini memfasilitasi integrasi ke toko lokal, grup komunitas, dan akun media sosial yang telah berjalan. Verifikasi memerlukan bukti foto fisik atau tangkapan layar transaksi perdana.
-      </div>
-
       {/* Sequential Next Step */}
       <div className="pt-1">
         <button
           type="button"
           onClick={() => setCurrent6MStep(5)}
-          className="taste-btn w-full py-3 bg-white hover:bg-slate-50 text-slate-800 text-xs font-bold rounded-xl border border-slate-300 flex items-center justify-center gap-2"
+          className="btn-secondary w-full text-xs text-[#111827] border-slate-300 hover:bg-slate-100"
         >
           <span>Lanjut ke Tahap 5M (Monitoring)</span>
           <span>→</span>

@@ -250,7 +250,7 @@ export const MappingView: React.FC = () => {
                 type="button"
                 onClick={handleSave}
                 disabled={isUpdating}
-                className="taste-btn py-3 bg-emerald-800 hover:bg-emerald-900 text-white text-xs font-bold rounded-xl shadow-xs flex items-center justify-center gap-1.5"
+                className="btn-primary w-full text-xs"
               >
                 <span>{isUpdating ? 'Menyimpan...' : 'Perbarui Data (Edit)'}</span>
               </button>
@@ -260,7 +260,7 @@ export const MappingView: React.FC = () => {
                   type="button"
                   onClick={handleCancelSubmission}
                   disabled={isUpdating}
-                  className="taste-btn py-3 bg-white hover:bg-red-50 text-red-700 hover:text-red-800 text-xs font-bold rounded-xl border border-red-200 shadow-2xs"
+                  className="btn-secondary w-full text-xs border-red-300 text-red-700 hover:bg-red-50"
                 >
                   Batalkan Pengajuan
                 </button>
@@ -269,7 +269,7 @@ export const MappingView: React.FC = () => {
                   type="button"
                   onClick={handleSave}
                   disabled={isUpdating}
-                  className="taste-btn py-3 bg-teal-800 hover:bg-teal-900 text-white text-xs font-bold rounded-xl shadow-xs"
+                  className="btn-primary w-full text-xs"
                 >
                   Ajukan Kembali
                 </button>
@@ -279,7 +279,7 @@ export const MappingView: React.FC = () => {
             <button
               type="button"
               onClick={() => setCurrent6MStep(2)}
-              className="taste-btn w-full py-3 bg-white hover:bg-slate-50 text-slate-800 text-xs font-bold rounded-xl border border-slate-300 flex items-center justify-center gap-2"
+              className="btn-secondary w-full text-xs text-[#111827] border-slate-300 hover:bg-slate-100"
             >
               <span>Lanjut ke Tahap 2M (Matching)</span>
               <span>→</span>

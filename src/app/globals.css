@@ -1,29 +1,104 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f8fafc;
-  --foreground: #0f172a;
-  --surface: #ffffff;
-  --surface-muted: #f1f5f9;
-  --border: #e2e8f0;
-  --border-focus: #0f766e;
-  --primary: #0f766e;
-  --primary-hover: #115e59;
-  --primary-active: #134e4a;
+  --primary-dark: #1A4331;
+  --primary-light: #E8F3ED;
+  --accent-success: #277A4D;
+  --accent-warning: #F59E0B;
+  --accent-danger: #D93A3A;
+  --bg-app: #F8F9FA;
+  --text-primary: #111827;
+  --text-secondary: #6B7280;
+  --text-dark-sec: #A3B8AD;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  background: #F8F9FA;
+  color: #111827;
+  font-family: -apple-system, BlinkMacSystemFont, "Plus Jakarta Sans", "Inter", "Segoe UI", Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
 }
 
-/* Taste-Skill Micro-Interactions Layer */
+/* UI Guidelines: Buttons & Pills */
+.btn-primary {
+  background-color: #1A4331;
+  color: #FFFFFF;
+  border-radius: 9999px;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  transition: all 140ms ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+.btn-primary:hover {
+  background-color: #143526;
+  filter: brightness(1.05);
+}
+.btn-primary:active {
+  transform: scale(0.985);
+}
 
-/* 1. Card Lift 2px on Hover */
+.btn-secondary {
+  border: 1.5px solid #1A4331;
+  background-color: transparent;
+  color: #1A4331;
+  border-radius: 9999px;
+  padding: 0.625rem 1.25rem;
+  font-weight: 600;
+  transition: all 140ms ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+.btn-secondary:hover {
+  background-color: #E8F3ED;
+}
+.btn-secondary:active {
+  transform: scale(0.985);
+}
+
+.pill-verified {
+  background-color: #E8F3ED;
+  color: #277A4D;
+  border-radius: 9999px;
+  padding: 0.2rem 0.65rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.pill-waiting {
+  background-color: #FEF3C7;
+  color: #B45309;
+  border-radius: 9999px;
+  padding: 0.2rem 0.65rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.pill-danger {
+  background-color: #FEE2E2;
+  color: #D93A3A;
+  border-radius: 9999px;
+  padding: 0.2rem 0.65rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+/* Micro-Interactions Layer */
 .taste-card {
   transition: transform 180ms cubic-bezier(0.16, 1, 0.3, 1),
               box-shadow 180ms cubic-bezier(0.16, 1, 0.3, 1),
@@ -33,28 +108,19 @@ body {
 
 .taste-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px -4px rgba(15, 23, 42, 0.08), 0 2px 6px -1px rgba(15, 23, 42, 0.04);
-  border-color: #cbd5e1;
+  box-shadow: 0 8px 20px -4px rgba(17, 24, 39, 0.08), 0 2px 6px -1px rgba(17, 24, 39, 0.04);
 }
 
-/* 2. Tactile Button Interaction */
 .taste-btn {
   transition: transform 120ms ease,
               background-color 150ms ease,
-              box-shadow 150ms ease,
-              border-color 150ms ease;
-}
-
-.taste-btn:hover {
-  filter: brightness(1.03);
+              box-shadow 150ms ease;
 }
 
 .taste-btn:active {
   transform: scale(0.985);
-  filter: brightness(0.96);
 }
 
-/* 3. Smooth Entrance Animation (data-enter) */
 @keyframes tasteEnter {
   from {
     opacity: 0;
@@ -67,11 +133,10 @@ body {
 }
 
 .taste-enter {
-  animation: tasteEnter 280ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: tasteEnter 260ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-/* 4. Focus Ring Accessibility */
 *:focus-visible {
-  outline: 2px solid #0f766e;
+  outline: 2px solid #1A4331;
   outline-offset: 2px;
 }

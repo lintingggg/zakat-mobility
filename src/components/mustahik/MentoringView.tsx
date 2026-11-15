@@ -56,7 +56,7 @@ export const MentoringView: React.FC = () => {
 
         <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
           <div
-            className="bg-emerald-700 h-full rounded-full transition-all duration-500"
+            className="bg-[#277A4D] h-full rounded-full transition-all duration-500"
             style={{ width: `${progressPercent}%` }}
           />
         </div>
@@ -71,33 +71,33 @@ export const MentoringView: React.FC = () => {
           return (
             <div
               key={mod.id}
-              className="taste-card bg-white rounded-2xl p-4 border border-slate-200 flex flex-col justify-between space-y-3"
+              className="taste-card bg-white rounded-2xl p-4 border border-slate-200 flex flex-col justify-between space-y-3 shadow-xs"
             >
               <div>
                 <div className="flex items-start justify-between gap-2 mb-1.5">
-                  <h3 className="text-xs font-bold text-slate-900">{mod.title}</h3>
+                  <h3 className="text-xs font-bold text-[#111827]">{mod.title}</h3>
                   <span
-                    className={`text-[10px] font-semibold px-2 py-0.5 rounded border ${
+                    className={
                       isVerified
-                        ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                        ? 'pill-verified'
                         : isWaiting
-                        ? 'bg-amber-50 text-amber-800 border-amber-200'
-                        : 'bg-slate-100 text-slate-600 border-slate-200'
-                    }`}
+                        ? 'pill-waiting'
+                        : 'text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200'
+                    }
                   >
                     {isVerified
                       ? 'Terverifikasi'
                       : isWaiting
-                      ? 'Menunggu review'
+                      ? 'Menunggu'
                       : 'Belum diunggah'}
                   </span>
                 </div>
-                <p className="text-xs text-slate-600 leading-relaxed">{mod.description}</p>
+                <p className="text-xs text-[#6B7280] leading-relaxed">{mod.description}</p>
               </div>
 
               <div className="pt-2 border-t border-slate-100 space-y-2">
                 {mod.filename && (
-                  <div className="text-[11px] text-emerald-800 font-mono bg-slate-50 px-2 py-1 rounded border border-slate-200">
+                  <div className="text-[11px] text-[#1A4331] font-mono bg-[#E8F3ED] px-2 py-1 rounded-lg border border-[#277A4D]/20">
                     📎 {mod.filename}
                   </div>
                 )}
@@ -105,17 +105,17 @@ export const MentoringView: React.FC = () => {
                 {!isVerified && !isWaiting && (
                   <button
                     onClick={() => handleSimulateUpload(mod.id)}
-                    className="taste-btn w-full py-2 bg-slate-50 hover:bg-slate-100 text-slate-800 text-xs font-semibold rounded-xl border border-slate-200 flex items-center justify-center gap-1.5"
+                    className="btn-secondary w-full text-xs py-2"
                   >
                     <UploadCloud className="w-3.5 h-3.5" />
-                    Unggah Bukti Tugas
+                    <span>Unggah Bukti Tugas</span>
                   </button>
                 )}
 
                 {isWaiting && (
-                  <div className="text-[11px] text-amber-800 bg-amber-50 px-2.5 py-1.5 rounded-lg border border-amber-200 flex items-center gap-1.5">
+                  <div className="text-[11px] text-[#B45309] bg-[#FEF3C7] px-2.5 py-1.5 rounded-lg border border-amber-200 flex items-center gap-1.5">
                     <Clock className="w-3.5 h-3.5 shrink-0" />
-                    <span>Tugas diunggah. Menunggu penilaian mentor.</span>
+                    <span>Tugas diunggah. Menunggu review mentor.</span>
                   </div>
                 )}
               </div>
@@ -125,25 +125,23 @@ export const MentoringView: React.FC = () => {
       </div>
 
       {/* Pelatihan Terdekat Card */}
-      <div className="taste-card bg-white rounded-2xl p-5 border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="taste-card bg-white rounded-2xl p-5 border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs">
         <div>
-          <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-500 block mb-1">
+          <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#6B7280] block mb-1">
             Jadwal Kelas Terdekat
           </span>
-          <h4 className="text-sm font-bold text-slate-900">
+          <h4 className="text-sm font-bold text-[#111827]">
             Pemasaran Digital untuk Usaha Mikro (Katalog WA & Optimasi Medsos)
           </h4>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <p className="text-xs text-[#6B7280] mt-0.5">
             Sabtu, 10.00 WIB · Daring via Zoom
           </p>
         </div>
 
         <button
           onClick={toggleTrainingEnrollment}
-          className={`taste-btn px-4 py-2 rounded-xl text-xs font-semibold transition-all shrink-0 ${
-            isEnrolledTraining
-              ? 'bg-slate-100 text-slate-800 border border-slate-300'
-              : 'bg-emerald-800 hover:bg-emerald-900 text-white shadow-xs'
+          className={`btn-primary text-xs shrink-0 ${
+            isEnrolledTraining ? 'bg-[#E8F3ED] text-[#1A4331] border border-[#1A4331]' : ''
           }`}
         >
           {isEnrolledTraining ? 'Terdaftar ✓' : 'Daftar Kelas'}
@@ -155,7 +153,7 @@ export const MentoringView: React.FC = () => {
         <button
           type="button"
           onClick={() => setCurrent6MStep(4)}
-          className="taste-btn w-full py-3 bg-white hover:bg-slate-50 text-slate-800 text-xs font-bold rounded-xl border border-slate-300 flex items-center justify-center gap-2"
+          className="btn-secondary w-full text-xs text-[#111827] border-slate-300 hover:bg-slate-100"
         >
           <span>Lanjut ke Tahap 4M (Market)</span>
           <span>→</span>

@@ -54,32 +54,32 @@ export const AmilVerifications: React.FC = () => {
               {/* Status or Action Buttons */}
               <div className="pt-2">
                 {isVerified ? (
-                  <div className="flex items-center gap-2 text-xs font-bold text-emerald-800 bg-emerald-50 p-2 rounded-xl border border-emerald-200">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-700 shrink-0" />
+                  <div className="flex items-center gap-2 text-xs font-bold text-[#1A4331] bg-[#E8F3ED] p-2.5 rounded-xl border border-[#277A4D]/20">
+                    <CheckCircle2 className="w-4 h-4 text-[#277A4D] shrink-0" />
                     <span>Dinyatakan Valid oleh Amil BAZNAS</span>
                   </div>
                 ) : isRevised ? (
-                  <div className="text-xs font-semibold text-amber-800 bg-amber-50 p-2 rounded-xl border border-amber-200">
+                  <div className="text-xs font-semibold text-[#B45309] bg-[#FEF3C7] p-2.5 rounded-xl border border-amber-200">
                     <span>Permintaan revisi/unggah ulang dikirim ke Mustahik</span>
                   </div>
                 ) : item.type === 'laporan' && item.title.includes('Laporan') ? (
                   <button
                     onClick={() => verifyEvidence(item.id, true)}
-                    className="taste-btn w-full py-2.5 bg-emerald-800 hover:bg-emerald-900 text-white text-xs font-bold rounded-xl shadow-xs"
+                    className="btn-primary w-full text-xs py-2.5"
                   >
                     Verifikasi Laporan Keuangan
                   </button>
                 ) : (
-                  <div className="grid grid-cols-2 gap-2 pt-1 border-t border-slate-100">
+                  <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100">
                     <button
                       onClick={() => verifyEvidence(item.id, true)}
-                      className="taste-btn py-2 bg-emerald-800 hover:bg-emerald-900 text-white text-xs font-bold rounded-xl"
+                      className="btn-primary text-xs py-2"
                     >
                       Verifikasi
                     </button>
                     <button
                       onClick={() => verifyEvidence(item.id, false)}
-                      className="taste-btn py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl border border-slate-200"
+                      className="btn-secondary text-xs py-2 text-[#6B7280] border-slate-300 hover:bg-slate-100"
                     >
                       Minta Unggah Ulang
                     </button>

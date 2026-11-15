@@ -20,13 +20,13 @@ export const ProfilView: React.FC = () => {
         {/* User Card */}
         <div className="md:col-span-5 space-y-4">
           <div className="taste-card bg-white rounded-2xl p-6 border border-slate-200 flex flex-col items-center text-center space-y-3">
-            <div className="w-16 h-16 rounded-full bg-slate-900 text-white font-mono font-bold text-lg flex items-center justify-center">
+            <div className="w-16 h-16 rounded-full bg-[#1A4331] text-white font-mono font-bold text-lg flex items-center justify-center shadow-xs">
               FE
             </div>
             <div>
               <div className="flex items-center justify-center gap-2">
-                <h3 className="text-base font-bold text-slate-900">{businessProfile.name}</h3>
-                <span className="text-[10px] bg-slate-100 text-slate-800 font-semibold px-2 py-0.5 rounded border border-slate-200">
+                <h3 className="text-base font-bold text-[#111827]">{businessProfile.name}</h3>
+                <span className="pill-verified text-[10px]">
                   Mustahik
                 </span>
               </div>

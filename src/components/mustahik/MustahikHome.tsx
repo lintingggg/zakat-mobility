@@ -4,15 +4,14 @@ import React from 'react';
 import { useApp } from '@/context/AppContext';
 import { 
   FileText, 
-  GraduationCap, 
-  BarChart2, 
-  ShoppingBag, 
+  Compass, 
+  ArrowRight, 
+  CheckCircle2, 
   Clock, 
-  Calendar, 
   ChevronRight,
-  ArrowRight,
-  Building2,
-  CheckCircle2
+  TrendingUp,
+  Sparkles,
+  Award
 } from 'lucide-react';
 
 export const MustahikHome: React.FC = () => {
@@ -21,226 +20,244 @@ export const MustahikHome: React.FC = () => {
     setMustahikTab, 
     setCurrent6MStep, 
     applicationStep,
-    evidenceQueue,
-    isEnrolledTraining,
-    toggleTrainingEnrollment
+    current6MStep,
+    submissionStatus,
+    documents,
+    independenceIndicators
   } = useApp();
 
   const isApproved = applicationStep >= 3;
   const isDisbursed = applicationStep === 4;
-
-  const pendingEvidenceCount = evidenceQueue.filter(
-    e => e.applicantName === 'Faizah E.' && e.status === 'menunggu'
-  ).length;
 
   const handleOpen6M = (stepNumber: number) => {
     setCurrent6MStep(stepNumber);
     setMustahikTab('6m');
   };
 
+  // Next step calculation
+  const nextStepLabel = current6MStep === 1 
+    ? '2M: Matching (Paket Bantuan)' 
+    : current6MStep === 2 
+    ? '3M: Mentoring (Modul Bisnis)' 
+    : current6MStep === 3 
+    ? '4M: Market (Jejaring Pasar)' 
+    : current6MStep === 4 
+    ? '5M: Monitoring (Laporan Omzet)' 
+    : '6M: Moving Up (Kemandirian)';
+
+  const metIndicators = independenceIndicators.filter(i => i.isMet).length;
+
   return (
-    <div className="space-y-6 taste-enter">
-      {/* 1. Header: Plain Factual Statement */}
-      <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-2 pb-3 border-b border-slate-200">
+    <div className="space-y-5 taste-enter">
+      {/* 1. Profil Ringkas Mustahik */}
+      <div className="flex items-center justify-between pb-1">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+          <h1 className="text-xl sm:text-2xl font-bold text-[#111827] tracking-tight">
             {businessProfile.name}
           </h1>
-          <p className="text-xs text-slate-600 mt-0.5">
-            Usaha: <strong>{businessProfile.businessName}</strong> · {businessProfile.address}
+          <p className="text-xs text-[#6B7280]">
+            {businessProfile.businessName} · {businessProfile.address}
           </p>
         </div>
+        <span className="pill-verified">
+          <CheckCircle2 className="w-3.5 h-3.5" />
+          <span>Mustahik BAZNAS</span>
+        </span>
+      </div>
 
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-semibold px-2.5 py-1 rounded bg-emerald-50 text-emerald-800 border border-emerald-200 inline-flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
-            Mustahik Terdaftar
+      {/* 2. Main Status & Fund Card (Guideline 4: Background `#1A4331`, `rounded-3xl`, Text `#FFFFFF` & `#A3B8AD`) */}
+      <div className="taste-card bg-[#1A4331] text-white rounded-3xl p-6 sm:p-7 shadow-sm relative overflow-hidden">
+        {/* Subtle decorative background circle */}
+        <div className="absolute -right-8 -bottom-8 w-44 h-44 rounded-full bg-white/5 pointer-events-none" />
+
+        <div className="flex items-start justify-between mb-4">
+          <div>
+            <span className="text-[11px] font-semibold text-[#A3B8AD] uppercase tracking-wider block">
+              Total Dana Zakat Produktif
+            </span>
+            <div className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white mt-1">
+              Rp {isDisbursed ? '7.000.000' : isApproved ? '7.000.000' : '3.500.000'}
+            </div>
+          </div>
+
+          <span className={`text-[11px] font-bold px-3 py-1 rounded-full border ${
+            isDisbursed
+              ? 'bg-[#277A4D]/30 text-[#E8F3ED] border-[#277A4D]'
+              : isApproved
+              ? 'bg-emerald-500/20 text-emerald-200 border-emerald-400'
+              : submissionStatus === 'dibatalkan'
+              ? 'bg-red-500/20 text-red-200 border-red-400'
+              : 'bg-amber-400/20 text-amber-200 border-amber-300'
+          }`}>
+            {isDisbursed 
+              ? 'Dana Disalurkan' 
+              : isApproved 
+              ? 'Disetujui BAZNAS' 
+              : submissionStatus === 'dibatalkan'
+              ? 'Dibatalkan'
+              : 'Menunggu Verifikasi'}
           </span>
+        </div>
+
+        {/* 6M Progress Bar inside Dark Card */}
+        <div className="pt-3 border-t border-white/10 space-y-2">
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-[#A3B8AD]">Tahapan Program 6M</span>
+            <span className="font-bold text-white font-mono">{current6MStep} dari 6 Tahap</span>
+          </div>
+          
+          <div className="w-full bg-black/20 h-2 rounded-full overflow-hidden">
+            <div 
+              className="bg-[#277A4D] h-full rounded-full transition-all duration-500"
+              style={{ width: `${Math.round((current6MStep / 6) * 100)}%` }}
+            />
+          </div>
+          <p className="text-[11px] text-[#A3B8AD] pt-1">
+            Skor Potensi Usaha: <strong className="text-white">{businessProfile.calculatedScore}%</strong> · {businessProfile.calculatedScore >= 75 ? 'Sangat Layak' : 'Layak Binaan'}
+          </p>
         </div>
       </div>
 
-      {/* 2. Responsive 2-Column Section */}
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-start">
-        {/* Left Column (7 cols): Financial status, Stepper & Quick Action */}
-        <div className="md:col-span-7 space-y-5">
-          {/* Main Status Panel: Architectural Solid Dark Card (Anti-slop) */}
-          <div className="taste-card bg-slate-900 text-white rounded-2xl p-5 md:p-6 border border-slate-800">
-            <div className="flex justify-between items-baseline mb-2">
-              <span className="text-xs font-mono uppercase tracking-wider text-slate-400">
-                Alokasi Zakat Produktif
-              </span>
-              <span className={`text-[11px] font-mono px-2 py-0.5 rounded border ${
-                isDisbursed
-                  ? 'bg-emerald-950 text-emerald-300 border-emerald-800'
-                  : isApproved
-                  ? 'bg-teal-950 text-teal-300 border-teal-800'
-                  : 'bg-slate-800 text-slate-300 border-slate-700'
-              }`}>
-                {isDisbursed ? 'Disalurkan' : isApproved ? 'Disetujui' : 'Diajukan'}
-              </span>
-            </div>
-
-            <div className="text-3xl sm:text-4xl font-extrabold tracking-tight mb-2">
-              Rp {isDisbursed ? '7.000.000' : isApproved ? '7.000.000' : '0'}
-            </div>
-
-            <p className="text-xs text-slate-300 leading-relaxed max-w-lg">
-              {isDisbursed 
-                ? 'Paket mesin perontok jagung dan modal operasional 3 bulan telah diserahterimakan.'
-                : isApproved
-                ? 'SK bantuan modal telah disetujui BAZNAS. Menunggu jadwal pengadaan alat mesin.'
-                : 'Berkas profil usaha dan kelayakan 5 aspek sedang ditinjau amil verifikator.'}
-            </p>
-
-            <div className="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between text-xs">
-              <span className="text-slate-400">Rencana: Mesin Pipil Jagung & Modal Bahan</span>
-              <button
-                onClick={() => setMustahikTab('dana')}
-                className="taste-btn font-semibold text-emerald-400 hover:text-emerald-300 flex items-center gap-1"
-              >
-                Rincian Dana <ArrowRight className="w-3.5 h-3.5" />
-              </button>
-            </div>
+      {/* 3. Next Step Banner (Guideline 5: Banner info tahap selanjutnya) */}
+      <div className="taste-card bg-[#E8F3ED] border border-[#277A4D]/20 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex items-start gap-3">
+          <div className="w-9 h-9 rounded-full bg-[#1A4331] text-white flex items-center justify-center shrink-0 shadow-2xs">
+            <Compass className="w-5 h-5" />
           </div>
-
-          {/* Stepper Card */}
-          <div className="taste-card bg-white rounded-2xl p-5 border border-slate-200 space-y-3">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="font-bold text-slate-900 text-xs sm:text-sm">Progres Intervensi 6M</h2>
-                <p className="text-xs text-slate-600 mt-0.5">
-                  Tahap saat ini: <strong className="text-slate-900">2M Matching</strong> (Alokasi Paket Modal & Mesin)
-                </p>
-              </div>
-              <span className="font-mono text-xs font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                1 / 6 Selesai
-              </span>
-            </div>
-
-            {/* Stepper Progress Bar */}
-            <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden flex">
-              <div className="bg-emerald-700 h-full w-1/6" />
-              <div className="bg-emerald-400 h-full w-1/6" />
-              <div className="bg-slate-200 h-full w-4/6" />
-            </div>
-
-            <div className="flex justify-between text-[10px] sm:text-[11px] text-slate-500 font-mono pt-1">
-              <span className="text-emerald-800 font-bold">1M Mapping ✓</span>
-              <span className="text-slate-900 font-bold">2M Matching</span>
-              <span>3M Mentoring</span>
-              <span>4M Market</span>
-              <span>5M Monitoring</span>
-              <span>6M Moving Up</span>
-            </div>
-
-            <button
-              onClick={() => handleOpen6M(2)}
-              className="taste-btn w-full py-2.5 bg-emerald-800 hover:bg-emerald-900 text-white text-xs font-semibold rounded-xl flex items-center justify-center gap-2 shadow-xs"
-            >
-              Buka Tahap 2M: Matching
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
-
-          {/* 4 Menu Cepat */}
-          <div className="bg-white rounded-2xl p-5 border border-slate-200 space-y-3">
-            <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-              Pintasan Modul 6M
+          <div>
+            <span className="text-[10px] font-mono uppercase font-bold text-[#277A4D] tracking-wider">
+              Langkah Selanjutnya
+            </span>
+            <h3 className="text-sm sm:text-base font-bold text-[#111827]">
+              Lanjutkan ke {nextStepLabel}
             </h3>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              {[
-                { step: 1, label: 'Mapping', sub: 'Pemetaan', icon: FileText },
-                { step: 3, label: 'Mentoring', sub: 'Pelatihan', icon: GraduationCap },
-                { step: 5, label: 'Monitoring', sub: 'Lapor Omzet', icon: BarChart2 },
-                { step: 4, label: 'Market', sub: 'Kanal Pasar', icon: ShoppingBag },
-              ].map(item => {
-                const Icon = item.icon;
-                return (
-                  <button
-                    key={item.step}
-                    onClick={() => handleOpen6M(item.step)}
-                    className="taste-card taste-btn flex flex-col items-start p-3 rounded-xl bg-slate-50 hover:bg-emerald-50/60 border border-slate-200 hover:border-emerald-300 text-left"
-                  >
-                    <Icon className="w-4 h-4 text-emerald-800 mb-2" />
-                    <span className="text-xs font-bold text-slate-900">{item.label}</span>
-                    <span className="text-[10px] text-slate-500">{item.sub}</span>
-                  </button>
-                );
-              })}
-            </div>
+            <p className="text-xs text-[#6B7280] mt-0.5">
+              Lengkapi berkas dan tugas untuk membuka paket intervensi berikutnya.
+            </p>
           </div>
         </div>
 
-        {/* Right Column (5 cols): Real Agenda & Verifikasi Status */}
-        <div className="md:col-span-5 space-y-4">
-          <div className="bg-white rounded-2xl p-5 border border-slate-200 space-y-3">
-            <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-              Agenda & Catatan Sistem
-            </h3>
+        <button
+          onClick={() => handleOpen6M(current6MStep < 6 ? current6MStep + 1 : 6)}
+          className="btn-primary text-xs shrink-0 self-start sm:self-center"
+        >
+          <span>Lanjutkan</span>
+          <ArrowRight className="w-3.5 h-3.5" />
+        </button>
+      </div>
 
-            {/* Notification 1 */}
-            <div 
-              onClick={() => handleOpen6M(1)}
-              className="taste-card p-3.5 rounded-xl border border-slate-200 bg-slate-50/70 hover:bg-white cursor-pointer"
+      {/* 4. Quick Action Tabs to 6M (Guideline 5: Program 6M Cards) */}
+      <div className="bg-white rounded-2xl p-5 border border-slate-200 space-y-3.5 shadow-xs">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+          <h2 className="text-sm font-bold text-[#111827]">
+            Progres 6M Pemberdayaan
+          </h2>
+          <button
+            onClick={() => setMustahikTab('6m')}
+            className="text-xs font-semibold text-[#1A4331] hover:underline flex items-center gap-1"
+          >
+            <span>Buka Detail 6M</span>
+            <ChevronRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+          {[
+            { step: 1, title: '1M: Mapping', desc: 'Pemetaan profil & skor', status: 'Selesai' },
+            { step: 2, title: '2M: Matching', desc: 'Paket modal & alat', status: isApproved ? 'Selesai' : 'Aktif' },
+            { step: 3, title: '3M: Mentoring', desc: '6 Modul pembukuan', status: 'Aktif' },
+            { step: 4, title: '4M: Market', desc: 'Toko & jejaring pasar', status: 'Aktif' },
+            { step: 5, title: '5M: Monitoring', desc: 'Laporan omzet bulanan', status: 'Rutin' },
+            { step: 6, title: '6M: Moving Up', desc: `${metIndicators}/6 Tolok ukur mandiri`, status: 'Target' },
+          ].map(m => (
+            <button
+              key={m.step}
+              onClick={() => handleOpen6M(m.step)}
+              className="taste-card text-left p-3 rounded-xl border border-slate-200 bg-[#F8F9FA] hover:bg-[#E8F3ED] hover:border-[#1A4331]/30 transition-all flex flex-col justify-between"
             >
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-xs font-bold text-slate-900">
-                  {pendingEvidenceCount > 0 ? `${pendingEvidenceCount} Berkas Menunggu Verifikasi` : 'Semua Berkas Terverifikasi'}
+              <div>
+                <span className="text-[10px] font-bold text-[#1A4331] block font-mono">
+                  Tahap {m.step}
                 </span>
-                <span className="text-[10px] font-mono text-amber-800 bg-amber-50 border border-amber-200 px-1.5 py-0.2 rounded font-semibold">
-                  Dalam Review
+                <span className="text-xs font-bold text-[#111827] block mt-0.5">
+                  {m.title}
+                </span>
+                <span className="text-[10px] text-[#6B7280] block mt-0.5">
+                  {m.desc}
                 </span>
               </div>
-              <p className="text-xs text-slate-600">
-                Dokumen SKTM dan foto tempat usaha sedang ditinjau amil BAZNAS.
-              </p>
-            </div>
-
-            {/* Notification 2 */}
-            <div className="taste-card p-3.5 rounded-xl border border-slate-200 bg-slate-50/70">
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-xs font-bold text-slate-900">Webinar Terdekat</span>
-                <button
-                  onClick={toggleTrainingEnrollment}
-                  className={`taste-btn text-[10px] font-bold px-2 py-0.5 rounded transition-all ${
-                    isEnrolledTraining 
-                      ? 'bg-emerald-100 text-emerald-900 border border-emerald-300'
-                      : 'bg-emerald-800 hover:bg-emerald-900 text-white'
-                  }`}
-                >
-                  {isEnrolledTraining ? 'Terdaftar ✓' : 'Daftar'}
-                </button>
+              <div className="pt-2">
+                <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${
+                  m.status === 'Selesai' 
+                    ? 'bg-[#E8F3ED] text-[#277A4D]' 
+                    : 'bg-white text-[#6B7280] border border-slate-200'
+                }`}>
+                  {m.status}
+                </span>
               </div>
-              <p className="text-xs font-semibold text-slate-800">
-                Pemasaran Digital untuk Usaha Mikro
-              </p>
-              <p className="text-[11px] text-slate-500 mt-0.5">
-                Sabtu, 10.00 WIB · Daring via Zoom
-              </p>
-            </div>
+            </button>
+          ))}
+        </div>
+      </div>
 
-            {/* Notification 3 */}
-            <div 
-              onClick={() => handleOpen6M(5)}
-              className="taste-card p-3.5 rounded-xl border border-slate-200 bg-slate-50/70 hover:bg-white cursor-pointer"
-            >
-              <h4 className="text-xs font-bold text-slate-900">Laporan Keuangan Bulanan</h4>
-              <p className="text-xs text-slate-600 mt-0.5">
-                Input omzet penjualan dan biaya operasional sebelum tanggal 5 tiap bulan.
-              </p>
-            </div>
-          </div>
-
-          {/* Institutional Partner Card */}
-          <div className="bg-white rounded-2xl p-4 border border-slate-200 text-xs space-y-1.5">
-            <span className="text-slate-500 font-semibold text-[11px] block uppercase tracking-wider">
-              Lembaga Penyelenggara
-            </span>
-            <p className="font-bold text-slate-900">BAZNAS Kabupaten Malang</p>
-            <p className="text-[11px] text-slate-500">
-              Petugas Pendamping Lapangan: Ustadz Hilman Ramadhan
+      {/* 5. List Section: Dokumen Legalitas & Usaha (Guideline 5: List Dokumen & Status) */}
+      <div className="bg-white rounded-2xl p-5 border border-slate-200 space-y-3 shadow-xs">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+          <div>
+            <h2 className="text-sm font-bold text-[#111827]">
+              Dokumen Verifikasi Legalitas
+            </h2>
+            <p className="text-[11px] text-[#6B7280]">
+              Berkas fisik diperiksa oleh Amil BAZNAS sebelum pencairan.
             </p>
           </div>
+          <button
+            onClick={() => handleOpen6M(1)}
+            className="btn-secondary text-[11px] py-1.5 px-3"
+          >
+            Kelola Dokumen
+          </button>
+        </div>
+
+        <div className="space-y-2">
+          {documents.map(doc => {
+            const isDocVerified = doc.status === 'terverifikasi';
+
+            return (
+              <div
+                key={doc.id}
+                className="p-3 rounded-xl border border-slate-200 bg-[#F8F9FA] flex items-center justify-between gap-3"
+              >
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center text-[#1A4331] shrink-0">
+                    <FileText className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <span className="text-xs font-bold text-[#111827] block">
+                      {doc.name}
+                    </span>
+                    <span className="text-[10px] text-[#6B7280] block">
+                      {doc.filename} · {doc.notes}
+                    </span>
+                  </div>
+                </div>
+
+                <span className={isDocVerified ? 'pill-verified' : 'pill-waiting'}>
+                  {isDocVerified ? (
+                    <>
+                      <CheckCircle2 className="w-3 h-3" />
+                      <span>Terverifikasi</span>
+                    </>
+                  ) : (
+                    <>
+                      <Clock className="w-3 h-3" />
+                      <span>Menunggu</span>
+                    </>
+                  )}
+                </span>
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>

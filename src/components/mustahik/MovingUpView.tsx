@@ -135,47 +135,47 @@ export const MovingUpView: React.FC = () => {
             </div>
           </div>
 
-          {/* Jalur Kemandirian Card: Solid architectural contrast */}
-          <div className={`taste-card rounded-2xl p-5 border transition-all ${
+          {/* Jalur Kemandirian Card: Primary Dark Green #1A4331 per Guideline */}
+          <div className={`taste-card rounded-3xl p-6 border transition-all ${
             metCount >= 5
-              ? 'bg-slate-900 text-white border-slate-800'
-              : 'bg-white border-slate-200 text-slate-800'
+              ? 'bg-[#1A4331] text-white border-[#1A4331] shadow-md'
+              : 'bg-white border-slate-200 text-[#111827] shadow-xs'
           }`}>
             <h3 className={`text-xs font-bold uppercase tracking-wider mb-3 ${
-              metCount >= 5 ? 'text-slate-400 font-mono' : 'text-slate-500'
+              metCount >= 5 ? 'text-[#A3B8AD] font-mono' : 'text-[#6B7280]'
             }`}>
-              Status Penyaluran
+              Status Kelulusan 6M
             </h3>
 
             <div className="flex items-center gap-2 mb-3">
-              <span className={`text-xs ${metCount >= 5 ? 'text-slate-300' : 'text-slate-600'}`}>
+              <span className={`text-xs ${metCount >= 5 ? 'text-[#A3B8AD]' : 'text-[#6B7280]'}`}>
                 Klasifikasi:
               </span>
-              <span className={`text-xs font-bold px-2.5 py-0.5 rounded border ${
+              <span className={`text-xs font-bold px-3 py-1 rounded-full border ${
                 metCount >= 5
-                  ? 'bg-emerald-950 text-emerald-300 border-emerald-700 font-mono'
-                  : 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                  ? 'bg-white/20 text-white border-white/30 font-mono'
+                  : 'bg-[#E8F3ED] text-[#277A4D] border-[#277A4D]/30'
               }`}>
-                {metCount >= 5 ? 'Muzakki Mandiri' : 'Mustahik Binaan'}
+                {metCount >= 5 ? 'Mandiri (Muzakki Baru)' : 'Mustahik Binaan Aktif'}
               </span>
             </div>
 
             <p className={`text-xs leading-relaxed ${
-              metCount >= 5 ? 'text-slate-300' : 'text-slate-600'
+              metCount >= 5 ? 'text-[#E8F3ED]' : 'text-[#6B7280]'
             }`}>
               {metCount >= 5
-                ? 'Usaha Gerit Jagung Bu Faizah telah memenuhi tolok ukur kemandirian ekonomi. Pendapatan usaha melampaui nishab dan binaan resmi lulus dari penerima zakat produktif menjadi Muzakki.'
-                : 'Pendampingan berlanjut: Pembinaan keuangan dan fasilitasi akses pasar oleh amil BAZNAS tetap berlangsung hingga target indikator terpenuhi.'}
+                ? 'Alhamdulillah! Usaha binaan telah memenuhi tolok ukur kemandirian ekonomi zakat produktif. Pendapatan usaha melampaui nishab dan binaan resmi lulus dari penerima zakat menjadi Muzakki.'
+                : 'Pendampingan berlanjut: Pembinaan keuangan dan fasilitasi akses pasar oleh amil BAZNAS tetap berlangsung hingga 6 indikator tercapai.'}
             </p>
 
             {metCount < 5 && (
-              <div className="pt-4 mt-2 border-t border-slate-100">
+              <div className="pt-4 mt-3 border-t border-slate-100">
                 <button
                   onClick={simulateFullGraduation}
-                  className="taste-btn w-full py-2.5 bg-amber-50 hover:bg-amber-100 text-amber-900 text-xs font-bold rounded-xl border border-amber-300 flex items-center justify-center gap-2"
+                  className="btn-secondary w-full text-xs bg-amber-50 border-amber-300 text-amber-900 hover:bg-amber-100"
                 >
                   <Sparkles className="w-3.5 h-3.5 text-amber-600" />
-                  Simulasi Mandiri (Loloskan 6/6)
+                  <span>Simulasi Mandiri (Loloskan 6/6)</span>
                 </button>
               </div>
             )}
