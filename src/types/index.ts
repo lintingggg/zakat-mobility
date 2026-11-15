@@ -8,6 +8,7 @@ export interface DocumentItem {
   id: string;
   name: string;
   filename?: string;
+  fileUrl?: string;
   status: VerificationStatus;
   notes?: string;
   uploadDate?: string;
@@ -93,6 +94,7 @@ export interface EvidenceItem {
   applicantName: string;
   title: string;
   filename: string;
+  fileUrl?: string;
   type: 'dokumen' | 'tugas' | 'laporan' | 'pasar';
   description?: string;
   status: 'menunggu' | 'terverifikasi' | 'perlu_revisi';

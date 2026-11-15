@@ -44,14 +44,54 @@ export const MappingView: React.FC = () => {
     setTimeout(() => setSavedSuccess(null), 4000);
   };
 
-  // Upload berkas nyata (Image & PDF)
+  // Upload berkas nyata (Image & PDF) dengan kompresi Data URL agar foto langsung tampil
   const handleFileChange = (docId: string, e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      uploadDocument(docId, file.name);
-      setSavedSuccess(`Berkas "${file.name}" berhasil diunggah.`);
-      setTimeout(() => setSavedSuccess(null), 3000);
+    if (!file) return;
+
+    if (file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = (loadEv) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+          const maxDim = 1200; // Resolusi tajam HD untuk dokumen/foto
+          if (width > maxDim || height > maxDim) {
+            if (width > height) {
+              height = Math.round((height * maxDim) / width);
+              width = maxDim;
+            } else {
+              width = Math.round((width * maxDim) / height);
+              height = maxDim;
+            }
+          }
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, width, height);
+            const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.82);
+            uploadDocument(docId, file.name, compressedDataUrl);
+          } else {
+            uploadDocument(docId, file.name, loadEv.target?.result as string);
+          }
+        };
+        img.src = loadEv.target?.result as string;
+      };
+      reader.readAsDataURL(file);
+    } else {
+      // Dokumen PDF atau format berkas lainnya
+      const reader = new FileReader();
+      reader.onload = (loadEv) => {
+        uploadDocument(docId, file.name, loadEv.target?.result as string);
+      };
+      reader.readAsDataURL(file);
     }
+
+    setSavedSuccess(`Berkas "${file.name}" berhasil diunggah.`);
+    setTimeout(() => setSavedSuccess(null), 3000);
   };
 
   const handleTriggerUpload = (docId: string) => {

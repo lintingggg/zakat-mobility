@@ -43,7 +43,7 @@ interface AppContextType {
   updateBusinessProfile: (updates: Partial<BusinessProfile>) => void;
   updateAspects: (aspectKey: keyof BusinessProfile['aspects'], value: string) => void;
   documents: DocumentItem[];
-  uploadDocument: (id: string, filename: string) => void;
+  uploadDocument: (id: string, filename: string, fileUrl?: string) => void;
   deleteDocument: (id: string) => void;
 
   // Matching
@@ -301,6 +301,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                       applicantName: q.mustahik_name,
                       title: doc.name || doc.id.toUpperCase(),
                       filename: doc.filename,
+                      fileUrl: doc.fileUrl,
                       type: 'dokumen',
                       status: doc.status === 'terverifikasi' ? 'terverifikasi' : doc.status === 'ditolak' ? 'perlu_revisi' : 'menunggu',
                       submittedAt: q.created_at ? new Date(q.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }) : 'Hari ini',
@@ -374,10 +375,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
   };
 
-  const uploadDocument = (id: string, filename: string) => {
+  const uploadDocument = (id: string, filename: string, fileUrl?: string) => {
     let nextDocs: DocumentItem[] = [];
     setDocuments(prev => {
-      const next = prev.map(d => (d.id === id ? { ...d, filename, status: 'menunggu' as const } : d));
+      const next = prev.map(d => (d.id === id ? { ...d, filename, fileUrl, status: 'menunggu' as const } : d));
       nextDocs = next;
       if (typeof window !== 'undefined' && currentUser?.email) {
         localStorage.setItem(`zm_docs_${currentUser.email.toLowerCase()}`, JSON.stringify(next));
@@ -397,6 +398,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       applicantName: currentUser?.name || businessProfile.name,
       title: id.toUpperCase(),
       filename,
+      fileUrl,
       type: 'dokumen',
       status: 'menunggu',
       submittedAt: 'Hari ini',
