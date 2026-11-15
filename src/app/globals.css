@@ -76,23 +76,25 @@ body {
 
 .pill-verified {
   background-color: #E8F3ED;
-  color: #277A4D;
+  color: #1A4331;
+  border: 1px solid rgba(26, 67, 49, 0.15);
   border-radius: 9999px;
   padding: 0.2rem 0.65rem;
   font-size: 0.7rem;
-  font-weight: 700;
+  font-weight: 600;
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
 }
 
 .pill-waiting {
-  background-color: #FEF3C7;
-  color: #B45309;
+  background-color: #F8FAFC;
+  color: #475569;
+  border: 1px solid #E2E8F0;
   border-radius: 9999px;
   padding: 0.2rem 0.65rem;
   font-size: 0.7rem;
-  font-weight: 700;
+  font-weight: 500;
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;

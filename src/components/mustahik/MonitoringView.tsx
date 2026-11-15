@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useApp } from '@/context/AppContext';
-import { ArrowLeft, CheckCircle2, UploadCloud, TrendingUp, Plus, Minus } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, UploadCloud, TrendingUp, Plus, Minus, Clock } from 'lucide-react';
 
 export const MonitoringView: React.FC = () => {
   const { monthlyReports, submitMonthlyReport, setMustahikTab, setCurrent6MStep } = useApp();
@@ -181,8 +181,9 @@ export const MonitoringView: React.FC = () => {
             <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1.5">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold text-slate-800">Bukti Nota Transaksi</span>
-                <span className="text-[10px] bg-amber-50 text-amber-800 border border-amber-200 px-2 py-0.5 rounded font-semibold">
-                  Menunggu verifikasi
+                <span className="inline-flex items-center gap-1 text-[11px] font-medium text-slate-500">
+                  <Clock className="w-3 h-3 text-slate-400" />
+                  <span>Sedang Ditinjau</span>
                 </span>
               </div>
               <p className="text-[11px] text-slate-500">

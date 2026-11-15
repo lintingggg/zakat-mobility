@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useApp } from '@/context/AppContext';
-import { ArrowLeft, Clock, UploadCloud } from 'lucide-react';
+import { ArrowLeft, Check, Clock, UploadCloud } from 'lucide-react';
 
 export const MentoringView: React.FC = () => {
   const {
@@ -76,21 +76,23 @@ export const MentoringView: React.FC = () => {
               <div>
                 <div className="flex items-start justify-between gap-2 mb-1.5">
                   <h3 className="text-xs font-bold text-[#111827]">{mod.title}</h3>
-                  <span
-                    className={
-                      isVerified
-                        ? 'pill-verified'
-                        : isWaiting
-                        ? 'pill-waiting'
-                        : 'text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200'
-                    }
-                  >
-                    {isVerified
-                      ? 'Terverifikasi'
-                      : isWaiting
-                      ? 'Menunggu'
-                      : 'Belum diunggah'}
-                  </span>
+                  <div>
+                    {isVerified ? (
+                      <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#1A4331]">
+                        <Check className="w-3.5 h-3.5 stroke-[2.5]" />
+                        <span>Terverifikasi</span>
+                      </span>
+                    ) : isWaiting ? (
+                      <span className="inline-flex items-center gap-1 text-[11px] font-medium text-slate-500">
+                        <Clock className="w-3.5 h-3.5 text-slate-400" />
+                        <span>Sedang Ditinjau</span>
+                      </span>
+                    ) : (
+                      <span className="text-[11px] font-normal text-slate-400">
+                        Belum Diunggah
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <p className="text-xs text-[#6B7280] leading-relaxed">{mod.description}</p>
               </div>
@@ -113,9 +115,9 @@ export const MentoringView: React.FC = () => {
                 )}
 
                 {isWaiting && (
-                  <div className="text-[11px] text-[#B45309] bg-[#FEF3C7] px-2.5 py-1.5 rounded-lg border border-amber-200 flex items-center gap-1.5">
-                    <Clock className="w-3.5 h-3.5 shrink-0" />
-                    <span>Tugas diunggah. Menunggu review mentor.</span>
+                  <div className="text-[11px] text-slate-600 bg-slate-50 px-2.5 py-1.5 rounded-lg border border-slate-200 flex items-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5 shrink-0 text-slate-400" />
+                    <span>Tugas telah diunggah. Menunggu verifikasi mentor.</span>
                   </div>
                 )}
               </div>

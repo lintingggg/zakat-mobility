@@ -175,29 +175,21 @@ export const MappingView: React.FC = () => {
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
                         <span className="text-xs font-bold text-slate-900">{doc.name}</span>
-                        <span
-                          className={`text-[10px] font-semibold px-2 py-0.5 rounded border ${
-                            isVerified
-                              ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
-                              : isWaiting
-                              ? 'bg-amber-50 text-amber-800 border-amber-200'
-                              : 'bg-slate-200 text-slate-600'
-                          }`}
-                        >
-                          {isVerified ? (
-                            <>
-                              <CheckCircle2 className="w-3 h-3 inline mr-1 text-emerald-600" />
-                              Terverifikasi
-                            </>
-                          ) : isWaiting ? (
-                            <>
-                              <Clock className="w-3 h-3 inline mr-1 text-amber-600" />
-                              Menunggu verifikasi
-                            </>
-                          ) : (
-                            'Belum diunggah'
-                          )}
-                        </span>
+                        {isVerified ? (
+                          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#1A4331]">
+                            <CheckCircle2 className="w-3 h-3 text-[#1A4331]" />
+                            <span>Terverifikasi</span>
+                          </span>
+                        ) : isWaiting ? (
+                          <span className="inline-flex items-center gap-1 text-[11px] font-medium text-slate-500">
+                            <Clock className="w-3 h-3 text-slate-400" />
+                            <span>Sedang Ditinjau</span>
+                          </span>
+                        ) : (
+                          <span className="text-[11px] font-normal text-slate-400">
+                            Belum diunggah
+                          </span>
+                        )}
                       </div>
                       <p className="text-[11px] text-slate-500 mt-1">{doc.notes}</p>
                       {doc.filename && (

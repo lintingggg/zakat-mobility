@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useApp } from '@/context/AppContext';
-import { ArrowLeft, Clock, UploadCloud, Store, Share2, Users, ShoppingCart, Network } from 'lucide-react';
+import { ArrowLeft, Check, Clock, UploadCloud, Store, Share2, Users, ShoppingCart, Network } from 'lucide-react';
 
 export const MarketView: React.FC = () => {
   const { marketChannels, uploadChannelProof, setMustahikTab, setCurrent6MStep } = useApp();
@@ -86,17 +86,23 @@ export const MarketView: React.FC = () => {
                     </div>
                   </div>
 
-                  <span
-                    className={
-                      isVerified
-                        ? 'pill-verified shrink-0'
-                        : isWaiting
-                        ? 'pill-waiting shrink-0'
-                        : 'text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200 shrink-0'
-                    }
-                  >
-                    {isVerified ? 'Aktif' : isWaiting ? 'Menunggu' : 'Belum aktif'}
-                  </span>
+                  <div>
+                    {isVerified ? (
+                      <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#1A4331]">
+                        <Check className="w-3.5 h-3.5 stroke-[2.5]" />
+                        <span>Aktif</span>
+                      </span>
+                    ) : isWaiting ? (
+                      <span className="inline-flex items-center gap-1 text-[11px] font-medium text-slate-500">
+                        <Clock className="w-3.5 h-3.5 text-slate-400" />
+                        <span>Sedang Ditinjau</span>
+                      </span>
+                    ) : (
+                      <span className="text-[11px] font-normal text-slate-400">
+                        Belum Terhubung
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <p className="text-xs text-[#6B7280] leading-relaxed">{channel.description}</p>
               </div>
@@ -119,8 +125,8 @@ export const MarketView: React.FC = () => {
                 )}
 
                 {isWaiting && (
-                  <div className="text-[11px] text-[#B45309] bg-[#FEF3C7] px-2.5 py-1.5 rounded-lg border border-amber-200 flex items-center gap-1.5">
-                    <Clock className="w-3.5 h-3.5 shrink-0" />
+                  <div className="text-[11px] text-slate-600 bg-slate-50 px-2.5 py-1.5 rounded-lg border border-slate-200 flex items-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5 shrink-0 text-slate-400" />
                     <span>Bukti tersimpan. Menunggu verifikasi amil.</span>
                   </div>
                 )}

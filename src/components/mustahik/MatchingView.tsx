@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useApp } from '@/context/AppContext';
-import { ArrowLeft, CheckCircle2, Check, Play } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Check, Clock, Play } from 'lucide-react';
 
 export const MatchingView: React.FC = () => {
   const {
@@ -123,11 +123,17 @@ export const MatchingView: React.FC = () => {
                       />
                       <span className="text-slate-800 font-medium">{doc.name}</span>
                     </div>
-                    <span
-                      className={isVerified ? 'pill-verified' : 'pill-waiting'}
-                    >
-                      {isVerified ? 'Terverifikasi' : 'Menunggu verifikasi'}
-                    </span>
+                    {isVerified ? (
+                      <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#1A4331]">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-[#1A4331]" />
+                        <span>Terverifikasi</span>
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 text-[11px] font-medium text-slate-500">
+                        <Clock className="w-3.5 h-3.5 text-slate-400" />
+                        <span>Sedang Ditinjau</span>
+                      </span>
+                    )}
                   </div>
                 );
               })}

@@ -6,6 +6,8 @@ import {
   FileText, 
   Compass, 
   ArrowRight, 
+  ArrowUpRight,
+  Check,
   CheckCircle2, 
   Clock, 
   ChevronRight,
@@ -223,18 +225,24 @@ export const MustahikHome: React.FC = () => {
         </button>
       </div>
 
-      {/* 4. Quick Action Tabs to 6M (Guideline 5: Program 6M Cards) */}
-      <div className="bg-white rounded-2xl p-5 border border-slate-200 space-y-3.5 shadow-xs">
-        <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-          <h2 className="text-sm font-bold text-[#111827]">
-            Progres 6M Pemberdayaan
-          </h2>
+      {/* 4. Quick Action Tabs to 6M (Anti-slop Tasteful UI) */}
+      <div className="bg-white rounded-2xl p-5 border border-slate-200 space-y-4 shadow-xs">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div>
+            <h2 className="text-sm font-bold text-[#111827]">
+              Progres 6M Pemberdayaan
+            </h2>
+            <p className="text-[11px] text-[#6B7280] mt-0.5">
+              Alur bertahap pemetaan hingga kemandirian ekonomi binaan.
+            </p>
+          </div>
           <button
             onClick={() => setMustahikTab('6m')}
-            className="text-xs font-semibold text-[#1A4331] hover:underline flex items-center gap-1"
+            className="w-8 h-8 rounded-full border border-slate-200 bg-white hover:bg-[#1A4331] text-slate-700 hover:text-white flex items-center justify-center transition-all group shrink-0 shadow-2xs"
+            title="Buka Detail Program 6M"
+            aria-label="Buka Detail Program 6M"
           >
-            <span>Buka Detail 6M</span>
-            <ChevronRight className="w-3.5 h-3.5" />
+            <ArrowUpRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
           </button>
         </div>
 
@@ -276,41 +284,64 @@ export const MustahikHome: React.FC = () => {
               desc: `${metIndicators}/6 Tolok ukur mandiri`, 
               status: isDraft || !isApproved ? 'Terkunci' : isFullyGraduated ? 'Lulus' : 'Target' 
             },
-          ].map(m => (
-            <button
-              key={m.step}
-              onClick={() => handleOpen6M(m.step)}
-              className="taste-card text-left p-3 rounded-xl border border-slate-200 bg-[#F8F9FA] hover:bg-[#E8F3ED] hover:border-[#1A4331]/30 transition-all flex flex-col justify-between"
-            >
-              <div>
-                <span className="text-[10px] font-bold text-[#1A4331] block font-mono">
-                  Tahap {m.step}
-                </span>
-                <span className="text-xs font-bold text-[#111827] block mt-0.5">
-                  {m.title}
-                </span>
-                <span className="text-[10px] text-[#6B7280] block mt-0.5">
-                  {m.desc}
-                </span>
-              </div>
-              <div className="pt-2">
-                <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${
-                  m.status === 'Selesai' 
-                    ? 'bg-[#E8F3ED] text-[#277A4D]' 
-                    : m.status === 'Terkunci' || m.status === 'Belum Diisi'
-                    ? 'bg-slate-100 text-[#6B7280]'
-                    : 'bg-amber-50 text-amber-800 border border-amber-200'
-                }`}>
-                  {m.status}
-                </span>
-              </div>
-            </button>
-          ))}
+          ].map(m => {
+            const isCardActive = m.status === 'Aktif' || m.status === 'Rutin';
+            const isCardDone = m.status === 'Selesai' || m.status === 'Lulus';
+            const isCardLocked = m.status === 'Terkunci' || m.status === 'Menunggu' || m.status === 'Belum Diisi';
+
+            return (
+              <button
+                key={m.step}
+                onClick={() => handleOpen6M(m.step)}
+                className={`taste-card text-left p-3.5 rounded-xl border transition-all flex flex-col justify-between min-h-[110px] ${
+                  isCardActive
+                    ? 'bg-white border-[#1A4331] ring-1 ring-[#1A4331]/10 shadow-xs'
+                    : isCardDone
+                    ? 'bg-white border-slate-200 hover:border-slate-300'
+                    : 'bg-slate-50/60 border-slate-200/60 opacity-60 hover:opacity-85'
+                }`}
+              >
+                <div>
+                  <span className="text-[10px] font-bold text-[#1A4331] block font-mono">
+                    Tahap {m.step}
+                  </span>
+                  <span className="text-xs font-bold text-[#111827] block mt-0.5">
+                    {m.title}
+                  </span>
+                  <span className="text-[10px] text-[#6B7280] block mt-0.5 line-clamp-1">
+                    {m.desc}
+                  </span>
+                </div>
+                
+                <div className="pt-2.5">
+                  {isCardDone ? (
+                    <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#1A4331]">
+                      <Check className="w-3 h-3 stroke-[2.5]" />
+                      <span>Selesai</span>
+                    </span>
+                  ) : isCardActive ? (
+                    <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-[#111827]">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#1A4331] animate-pulse" />
+                      <span>Sedang Berjalan</span>
+                    </span>
+                  ) : m.status === 'Target' ? (
+                    <span className="text-[11px] font-medium text-slate-500">
+                      Target Akhir
+                    </span>
+                  ) : (
+                    <span className="text-[11px] font-medium text-slate-400">
+                      Terkunci
+                    </span>
+                  )}
+                </div>
+              </button>
+            );
+          })}
         </div>
       </div>
 
-      {/* 5. List Section: Dokumen Legalitas & Usaha (Guideline 5: List Dokumen & Status) */}
-      <div className="bg-white rounded-2xl p-5 border border-slate-200 space-y-3 shadow-xs">
+      {/* 5. List Section: Dokumen Legalitas & Usaha (Guideline 5: Clean Editorial List) */}
+      <div className="bg-white rounded-2xl p-5 border border-slate-200 space-y-3.5 shadow-xs">
         <div className="flex items-center justify-between border-b border-slate-100 pb-2">
           <div>
             <h2 className="text-sm font-bold text-[#111827]">
@@ -352,23 +383,23 @@ export const MustahikHome: React.FC = () => {
                   </div>
                 </div>
 
-                <span className={isDocVerified ? 'pill-verified' : isDocWaiting ? 'pill-waiting' : 'pill-waiting opacity-75'}>
+                <div>
                   {isDocVerified ? (
-                    <>
-                      <CheckCircle2 className="w-3 h-3" />
+                    <span className="inline-flex items-center gap-1 text-xs font-semibold text-[#1A4331]">
+                      <Check className="w-3.5 h-3.5 stroke-[2.5]" />
                       <span>Terverifikasi</span>
-                    </>
+                    </span>
                   ) : isDocWaiting ? (
-                    <>
-                      <Clock className="w-3 h-3" />
-                      <span>Menunggu</span>
-                    </>
+                    <span className="inline-flex items-center gap-1 text-xs font-medium text-slate-500">
+                      <Clock className="w-3.5 h-3.5 text-slate-400" />
+                      <span>Sedang Ditinjau</span>
+                    </span>
                   ) : (
-                    <>
-                      <span>Belum Diunggah</span>
-                    </>
+                    <span className="text-xs font-normal text-slate-400">
+                      Belum Diunggah
+                    </span>
                   )}
-                </span>
+                </div>
               </div>
             );
           })}
