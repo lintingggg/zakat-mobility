@@ -65,24 +65,12 @@ export const MustahikHome: React.FC = () => {
               : 'Profil usaha belum dilengkapi · Silakan isi di menu 1M Mapping'}
           </p>
         </div>
-        <span className={isApproved ? 'pill-verified' : 'pill-waiting'}>
-          {isApproved ? (
-            <>
-              <CheckCircle2 className="w-3.5 h-3.5" />
-              <span>Mustahik BAZNAS</span>
-            </>
-          ) : isDraft ? (
-            <>
-              <Clock className="w-3.5 h-3.5" />
-              <span>Calon Binaan</span>
-            </>
-          ) : (
-            <>
-              <Clock className="w-3.5 h-3.5" />
-              <span>Menunggu Verifikasi</span>
-            </>
-          )}
-        </span>
+        {isApproved && (
+          <span className="pill-verified">
+            <CheckCircle2 className="w-3.5 h-3.5" />
+            <span>Mustahik BAZNAS</span>
+          </span>
+        )}
       </div>
 
       {/* 2. Main Status & Fund Card (Guideline 4: Background `#1A4331`, `rounded-3xl`, Text `#FFFFFF` & `#A3B8AD`) */}
@@ -105,27 +93,21 @@ export const MustahikHome: React.FC = () => {
             )}
           </div>
 
-          <span className={`text-[11px] font-bold px-3 py-1 rounded-full border ${
-            isDisbursed
-              ? 'bg-[#277A4D]/30 text-[#E8F3ED] border-[#277A4D]'
-              : isApproved
-              ? 'bg-emerald-500/20 text-emerald-200 border-emerald-400'
-              : isDraft
-              ? 'bg-white/10 text-slate-200 border-white/20'
-              : submissionStatus === 'dibatalkan'
-              ? 'bg-red-500/20 text-red-200 border-red-400'
-              : 'bg-amber-400/20 text-amber-200 border-amber-300'
-          }`}>
-            {isDisbursed 
-              ? 'Dana Disalurkan' 
-              : isApproved 
-              ? 'Disetujui BAZNAS' 
-              : isDraft
-              ? 'Belum Mengajukan'
-              : submissionStatus === 'dibatalkan'
-              ? 'Dibatalkan'
-              : 'Menunggu Verifikasi'}
-          </span>
+          {(isDisbursed || isApproved || submissionStatus === 'dibatalkan') && (
+            <span className={`text-[11px] font-bold px-3 py-1 rounded-full border ${
+              isDisbursed
+                ? 'bg-[#277A4D]/30 text-[#E8F3ED] border-[#277A4D]'
+                : isApproved
+                ? 'bg-emerald-500/20 text-emerald-200 border-emerald-400'
+                : 'bg-red-500/20 text-red-200 border-red-400'
+            }`}>
+              {isDisbursed 
+                ? 'Dana Disalurkan' 
+                : isApproved 
+                ? 'Disetujui BAZNAS' 
+                : 'Dibatalkan'}
+            </span>
+          )}
         </div>
 
         {/* 6M Progress Bar inside Dark Card */}
