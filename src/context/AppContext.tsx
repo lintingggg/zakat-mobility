@@ -74,7 +74,7 @@ interface AppContextType {
   applicants: ApplicantItem[];
   updateApplicantStatus: (id: string, status: 'Baru' | 'Disetujui' | 'Didampingi' | 'Ditolak') => void;
   evidenceQueue: EvidenceItem[];
-  verifyEvidence: (id: string, isApproved: boolean) => void;
+  verifyEvidence: (id: string, isApproved: boolean, notes?: string) => void;
 
   // Global Mock Reset
   resetAllMockData: () => void;
@@ -376,11 +376,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     ]);
   };
 
-  const verifyEvidence = (id: string, isApproved: boolean) => {
+  const verifyEvidence = (id: string, isApproved: boolean, notes?: string) => {
     setEvidenceQueue(prev =>
       prev.map(item =>
         item.id === id
-          ? { ...item, status: isApproved ? 'terverifikasi' : 'perlu_revisi' }
+          ? { 
+              ...item, 
+              status: isApproved ? 'terverifikasi' : 'perlu_revisi',
+              notes: notes || item.notes 
+            }
           : item
       )
     );
@@ -393,7 +397,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setDocuments(prev =>
         prev.map(d =>
           targetItem.title.toLowerCase().includes(d.id)
-            ? { ...d, status: isApproved ? 'terverifikasi' : 'ditolak' }
+            ? { 
+                ...d, 
+                status: isApproved ? 'terverifikasi' : 'ditolak',
+                notes: notes ? `Catatan Amil: ${notes}` : d.notes 
+              }
             : d
         )
       );

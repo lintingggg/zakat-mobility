@@ -97,4 +97,5 @@ export interface EvidenceItem {
   description?: string;
   status: 'menunggu' | 'terverifikasi' | 'perlu_revisi';
   submittedAt: string;
+  notes?: string;
 }
