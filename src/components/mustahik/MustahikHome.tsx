@@ -129,7 +129,15 @@ export const MustahikHome: React.FC = () => {
             {isDraft ? (
               <span>Lengkapi profil dan pemetaan usaha Anda di tahap <strong>1M: Mapping</strong></span>
             ) : (
-              <>Skor Potensi Usaha: <strong className="text-white">{businessProfile.calculatedScore}%</strong> · {businessProfile.calculatedScore >= 75 ? 'Sangat Layak' : 'Layak Binaan'}</>
+              <>
+                Skor Potensi Usaha: <strong className="text-white">{businessProfile.calculatedScore}%</strong> · {
+                  businessProfile.calculatedScore >= 75 
+                    ? 'Sangat Layak' 
+                    : businessProfile.calculatedScore >= 50 
+                    ? 'Layak Binaan' 
+                    : 'Perlu Pendampingan'
+                }
+              </>
             )}
           </p>
         </div>

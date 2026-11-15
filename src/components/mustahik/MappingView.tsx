@@ -360,7 +360,7 @@ export const MappingView: React.FC = () => {
               <div className="flex items-center gap-2 mb-1">
                 <span className="text-sm font-bold text-slate-900">Skor Potensi Awal</span>
                 <span className="text-xs bg-slate-100 text-slate-800 font-semibold px-2 py-0.5 rounded border border-slate-200">
-                  {businessProfile.calculatedScore < 50 ? 'Rendah' : businessProfile.calculatedScore < 75 ? 'Sedang' : 'Tinggi'}
+                  {businessProfile.calculatedScore < 50 ? 'Perlu Pendampingan' : businessProfile.calculatedScore < 75 ? 'Layak Binaan' : 'Sangat Layak'}
                 </span>
               </div>
               <p className="text-xs text-slate-600 leading-relaxed">
