@@ -283,18 +283,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setDocuments(prev =>
       prev.map(d => (d.id === id ? { ...d, filename, status: 'menunggu' } : d))
     );
-    // Add to Amil queue
+    // Upsert ke antrean Amil: ganti jika tipe dokumen yang sama sudah ada
+    const newEvidence: EvidenceItem = {
+      id: `ev-${id}-${Date.now()}`,
+      applicantName: currentUser?.name || businessProfile.name,
+      title: id.toUpperCase(),
+      filename,
+      type: 'dokumen',
+      status: 'menunggu',
+      submittedAt: 'Hari ini',
+    };
     setEvidenceQueue(prev => [
-      {
-        id: `ev-${Date.now()}`,
-        applicantName: currentUser?.name || businessProfile.name,
-        title: id.toUpperCase(),
-        filename,
-        type: 'dokumen',
-        status: 'menunggu',
-        submittedAt: 'Hari ini',
-      },
-      ...prev,
+      newEvidence,
+      ...prev.filter(e => e.title.toUpperCase() !== id.toUpperCase()),
     ]);
   };
 
@@ -302,7 +303,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setDocuments(prev =>
       prev.map(d => (d.id === id ? { ...d, filename: '', status: 'belum_diunggah' } : d))
     );
-    setEvidenceQueue(prev => prev.filter(e => !e.title.toLowerCase().includes(id.toLowerCase())));
+    setEvidenceQueue(prev => prev.filter(e => e.title.toUpperCase() !== id.toUpperCase()));
   };
 
   const simulateNextStep = () => {

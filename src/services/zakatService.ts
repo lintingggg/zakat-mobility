@@ -161,29 +161,60 @@ export async function saveOrUpdateMapping(
       updated_at: new Date().toISOString(),
     };
 
-    // Upsert mapping
-    const { data: savedMapping, error: mapErr } = await supabase
+    // Periksa apakah mapping sudah ada untuk user ini
+    const { data: existingMapping } = await supabase
       .from('mustahik_mapping')
-      .upsert([mappingPayload], { onConflict: 'id' })
-      .select()
-      .single();
+      .select('id')
+      .eq('user_email', cleanEmail)
+      .maybeSingle();
 
-    if (mapErr) {
-      console.warn('Mapping upsert warning:', mapErr.message);
+    let savedMapping;
+    if (existingMapping) {
+      const { data, error } = await supabase
+        .from('mustahik_mapping')
+        .update(mappingPayload)
+        .eq('id', existingMapping.id)
+        .select()
+        .single();
+      if (error) console.warn('Mapping update warning:', error.message);
+      savedMapping = data;
+    } else {
+      const { data, error } = await supabase
+        .from('mustahik_mapping')
+        .insert([mappingPayload])
+        .select()
+        .single();
+      if (error) console.warn('Mapping insert warning:', error.message);
+      savedMapping = data;
     }
 
-    // Also add / update verification_queue for Amil
+    // Periksa apakah verification_queue sudah ada untuk user ini
+    const { data: existingQueue } = await supabase
+      .from('verification_queue')
+      .select('id')
+      .eq('mustahik_email', cleanEmail)
+      .maybeSingle();
+
     const queuePayload: VerificationQueueDB = {
       mustahik_name: userName || profile.name,
       mustahik_email: cleanEmail,
-      program_name: `${programRec} (${profile.businessName})`,
+      program_name: `${programRec} (${profile.businessName || 'Usaha Baru'})`,
       nominal_bantuan: nominalModal,
       skor: profile.calculatedScore,
       status: 'menunggu',
       updated_at: new Date().toISOString(),
     };
 
-    await supabase.from('verification_queue').insert([queuePayload]);
+    if (existingQueue) {
+      await supabase
+        .from('verification_queue')
+        .update(queuePayload)
+        .eq('id', existingQueue.id);
+    } else {
+      await supabase
+        .from('verification_queue')
+        .insert([queuePayload]);
+    }
 
     return savedMapping;
   } catch (err) {
