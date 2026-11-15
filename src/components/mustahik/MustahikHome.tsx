@@ -353,9 +353,11 @@ export const MustahikHome: React.FC = () => {
           </div>
           <button
             onClick={() => handleOpen6M(1)}
-            className="btn-secondary text-[11px] py-1.5 px-3"
+            className="w-8 h-8 rounded-full border border-slate-200 bg-white hover:bg-[#1A4331] text-slate-700 hover:text-white flex items-center justify-center transition-all group shrink-0 shadow-2xs"
+            title="Kelola Dokumen di 1M Mapping"
+            aria-label="Kelola Dokumen di 1M Mapping"
           >
-            Kelola Dokumen
+            <ArrowUpRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
           </button>
         </div>
 
