@@ -282,6 +282,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             potentialScore: q.skor || 50,
             status: isAppApproved ? 'Disetujui' : isAppRejected ? 'Ditolak' : isAppWithdrawn ? 'Ditolak' : 'Baru',
             submissionDate: q.created_at ? new Date(q.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }) : 'Hari ini',
+            stage: isAppApproved ? 2 : 1,
           };
         });
 
@@ -566,13 +567,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const updateApplicantStatus = async (id: string, status: 'Baru' | 'Disetujui' | 'Didampingi' | 'Ditolak') => {
+    const nextStage = status === 'Disetujui' ? 2 : 1;
     setApplicants(prev =>
-      prev.map(a => (a.id === id ? { ...a, status } : a))
+      prev.map(a => (a.id === id ? { ...a, status, stage: nextStage } : a))
     );
     // Sinkronkan status pengajuan mustahik
     if (status === 'Disetujui') {
-      setApplicationStep(3); // Disetujui
+      setApplicationStep(3); // Disetujui lolos tahap 1
       setSubmissionStatus('disetujui');
+      setCurrent6MStep(2); // Lanjut ke Tahap 2: 2M Matching
     } else if (status === 'Didampingi') {
       setApplicationStep(2); // Diverifikasi amil / didampingi
     } else if (status === 'Ditolak') {

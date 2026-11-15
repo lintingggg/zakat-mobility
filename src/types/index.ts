@@ -87,6 +87,7 @@ export interface ApplicantItem {
   potentialScore: number; // e.g. 47
   status: 'Baru' | 'Disetujui' | 'Didampingi' | 'Ditolak';
   submissionDate: string;
+  stage?: number; // 1: 1M Mapping, 2: 2M Matching, etc.
 }
 
 export interface EvidenceItem {
