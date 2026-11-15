@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase';
-import { UserRole, BusinessProfile } from '@/types';
+import { UserRole, BusinessProfile, DocumentItem } from '@/types';
 
 export interface UserProfileDB {
   id: string;
@@ -141,12 +141,36 @@ export async function saveOrUpdateMapping(
   profile: BusinessProfile,
   userEmail: string,
   userName: string,
-  nominalModal: number = 3500000
+  nominalModal: number = 3500000,
+  documents?: DocumentItem[]
 ) {
   try {
     const cleanEmail = userEmail.trim().toLowerCase();
     const statusScore = profile.calculatedScore >= 75 ? 'Sangat Layak' : profile.calculatedScore >= 50 ? 'Layak' : 'Perlu Pendampingan';
     const programRec = profile.calculatedScore >= 70 ? 'Z-Mart & Z-Auto' : 'Z-Preneur Pelatihan Usaha';
+
+    // Periksa apakah mapping sudah ada untuk user ini
+    const { data: existingMapping } = await supabase
+      .from('mustahik_mapping')
+      .select('id, catatan_amil')
+      .eq('user_email', cleanEmail)
+      .maybeSingle();
+
+    let extraData: Record<string, unknown> = {};
+    if (existingMapping?.catatan_amil) {
+      try {
+        extraData = JSON.parse(existingMapping.catatan_amil);
+      } catch {}
+    }
+
+    extraData.address = profile.address;
+    extraData.duration = profile.duration;
+    extraData.aspects = profile.aspects;
+    if (documents && documents.length > 0) {
+      extraData.documents = documents;
+    }
+
+    const catatanAmilJson = JSON.stringify(extraData);
 
     const mappingPayload: MustahikMappingDB = {
       user_email: cleanEmail,
@@ -158,15 +182,9 @@ export async function saveOrUpdateMapping(
       skor_status: statusScore,
       program_rekomendasi: programRec,
       status_pengajuan: 'diajukan',
+      catatan_amil: catatanAmilJson,
       updated_at: new Date().toISOString(),
     };
-
-    // Periksa apakah mapping sudah ada untuk user ini
-    const { data: existingMapping } = await supabase
-      .from('mustahik_mapping')
-      .select('id')
-      .eq('user_email', cleanEmail)
-      .maybeSingle();
 
     let savedMapping;
     if (existingMapping) {
@@ -202,6 +220,7 @@ export async function saveOrUpdateMapping(
       nominal_bantuan: nominalModal,
       skor: profile.calculatedScore,
       status: 'menunggu',
+      catatan_amil: catatanAmilJson,
       updated_at: new Date().toISOString(),
     };
 
@@ -220,6 +239,144 @@ export async function saveOrUpdateMapping(
   } catch (err) {
     console.error('Error saving mapping to Supabase:', err);
     return null;
+  }
+}
+
+// Simpan / update metadata dokumen langsung ke Supabase
+export async function saveDocumentsMetadata(userEmail: string, documents: DocumentItem[]) {
+  try {
+    const cleanEmail = userEmail.trim().toLowerCase();
+
+    // 1. Update mustahik_mapping
+    const { data: mapping } = await supabase
+      .from('mustahik_mapping')
+      .select('id, catatan_amil')
+      .eq('user_email', cleanEmail)
+      .maybeSingle();
+
+    let extraData: Record<string, unknown> = {};
+    if (mapping?.catatan_amil) {
+      try {
+        extraData = JSON.parse(mapping.catatan_amil);
+      } catch {}
+    }
+    extraData.documents = documents;
+    const jsonStr = JSON.stringify(extraData);
+
+    if (mapping) {
+      await supabase
+        .from('mustahik_mapping')
+        .update({
+          catatan_amil: jsonStr,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', mapping.id);
+    }
+
+    // 2. Update verification_queue
+    const { data: queue } = await supabase
+      .from('verification_queue')
+      .select('id, catatan_amil')
+      .eq('mustahik_email', cleanEmail)
+      .maybeSingle();
+
+    if (queue) {
+      await supabase
+        .from('verification_queue')
+        .update({
+          catatan_amil: jsonStr,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', queue.id);
+    }
+
+    return true;
+  } catch (err) {
+    console.error('Error saving documents metadata:', err);
+    return false;
+  }
+}
+
+// Verifikasi dokumen spesifik oleh Amil dan simpan ke Supabase
+export async function updateEvidenceVerification(
+  evidenceId: string,
+  applicantName: string,
+  isApproved: boolean,
+  notes?: string
+) {
+  try {
+    // Cari row di verification_queue berdasarkan ID atau nama
+    const parts = evidenceId.split('-');
+    const docId = parts[1] || '';
+    const queueId = parts.slice(2).join('-');
+
+    let queueItem = null;
+    if (queueId) {
+      const { data } = await supabase
+        .from('verification_queue')
+        .select('*')
+        .eq('id', queueId)
+        .maybeSingle();
+      queueItem = data;
+    }
+
+    if (!queueItem && applicantName) {
+      const { data } = await supabase
+        .from('verification_queue')
+        .select('*')
+        .ilike('mustahik_name', applicantName)
+        .maybeSingle();
+      queueItem = data;
+    }
+
+    if (!queueItem) return false;
+
+    let extraData: { documents?: DocumentItem[]; [key: string]: unknown } = {};
+    if (queueItem.catatan_amil) {
+      try {
+        extraData = JSON.parse(queueItem.catatan_amil);
+      } catch {}
+    }
+
+    if (extraData.documents && Array.isArray(extraData.documents)) {
+      extraData.documents = extraData.documents.map((d: DocumentItem) => {
+        if (d.id.toLowerCase() === docId.toLowerCase() || d.name.toLowerCase().includes(docId.toLowerCase())) {
+          return {
+            ...d,
+            status: isApproved ? 'terverifikasi' : 'ditolak',
+            notes: notes || d.notes,
+          };
+        }
+        return d;
+      });
+    }
+
+    const updatedJson = JSON.stringify(extraData);
+
+    // Update verification_queue
+    await supabase
+      .from('verification_queue')
+      .update({
+        catatan_amil: updatedJson,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', queueItem.id);
+
+    // Update mustahik_mapping
+    if (queueItem.mustahik_email) {
+      await supabase
+        .from('mustahik_mapping')
+        .update({
+          catatan_amil: updatedJson,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('user_email', queueItem.mustahik_email);
+    }
+
+    return true;
+  } catch (err) {
+    console.error('Error updating evidence verification:', err);
+    return false;
   }
 }
 

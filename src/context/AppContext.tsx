@@ -4,6 +4,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import { supabase } from '@/lib/supabase';
 import {
   UserRole,
+  VerificationStatus,
   BusinessProfile,
   DocumentItem,
   ZakatPackageItem,
@@ -153,6 +154,25 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [evidenceQueue, setEvidenceQueue] = useState<EvidenceItem[]>([]);
   const [isMobileFrame, setIsMobileFrame] = useState<boolean>(true);
 
+  // Restore user session on browser reload or rebuild
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const savedSession = localStorage.getItem('zm_session');
+        if (savedSession) {
+          const parsed = JSON.parse(savedSession);
+          if (parsed && parsed.email) {
+            setCurrentUser(parsed);
+            setRole(parsed.role || 'mustahik');
+            setIsLoggedIn(true);
+          }
+        }
+      } catch (e) {
+        console.warn('Error restoring session from localStorage:', e);
+      }
+    }
+  }, []);
+
   // Recalculate potential score when business inputs change
   const calculateScore = (aspects: BusinessProfile['aspects']) => {
     let score = 30;
@@ -177,21 +197,65 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           .maybeSingle();
 
         if (mappingData) {
+          let savedDocs: DocumentItem[] = [];
+          let savedAspects = emptyBusinessProfile('').aspects;
+          let savedAddress = '';
+          let savedDuration = '';
+
+          if (mappingData.catatan_amil) {
+            try {
+              const parsed = JSON.parse(mappingData.catatan_amil);
+              if (parsed.documents && Array.isArray(parsed.documents)) {
+                savedDocs = parsed.documents;
+              }
+              if (parsed.address) savedAddress = parsed.address;
+              if (parsed.duration) savedDuration = parsed.duration;
+              if (parsed.aspects) savedAspects = parsed.aspects;
+            } catch {}
+          }
+
+          // Fallback to localStorage jika belum tersimpan di DB
+          if (savedDocs.length === 0 && typeof window !== 'undefined') {
+            const cached = localStorage.getItem(`zm_docs_${currentUser.email.toLowerCase()}`);
+            if (cached) {
+              try {
+                savedDocs = JSON.parse(cached);
+              } catch {}
+            }
+          }
+
           setBusinessProfile(prev => ({
             ...prev,
-            businessName: mappingData.nama_usaha || '',
-            businessType: mappingData.kategori_usaha || '',
-            monthlyRevenue: Number(mappingData.omzet_bulanan) || 0,
-            calculatedScore: mappingData.skor_potensi || 30,
+            businessName: mappingData.nama_usaha || prev.businessName,
+            businessType: mappingData.kategori_usaha || prev.businessType,
+            monthlyRevenue: Number(mappingData.omzet_bulanan) || prev.monthlyRevenue,
+            calculatedScore: mappingData.skor_potensi || prev.calculatedScore,
+            address: savedAddress || prev.address,
+            duration: savedDuration || prev.duration,
+            aspects: savedAspects || prev.aspects,
           }));
+
+          if (savedDocs.length > 0) {
+            setDocuments(savedDocs);
+          }
+
           if (mappingData.status_pengajuan) {
             setSubmissionStatus(mappingData.status_pengajuan);
           }
         } else {
-          // Akun yang belum mengisi mapping: bersih dan berstatus draft
+          // Akun baru yang belum mapping di cloud: cek local fallback
+          let localDocs = emptyDocuments;
+          if (typeof window !== 'undefined') {
+            const cached = localStorage.getItem(`zm_docs_${currentUser.email.toLowerCase()}`);
+            if (cached) {
+              try {
+                localDocs = JSON.parse(cached);
+              } catch {}
+            }
+          }
           setBusinessProfile(emptyBusinessProfile(currentUser.name));
           setSubmissionStatus('draft');
-          setDocuments(emptyDocuments);
+          setDocuments(localDocs);
         }
       }
 
@@ -222,8 +286,39 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         });
 
         setApplicants(cloudApplicants);
+
+        // Ekstrak berkas dari queueData.catatan_amil untuk verifikasi berkas fisik Amil
+        const cloudEvidence: EvidenceItem[] = [];
+        queueData.forEach(q => {
+          if (q.catatan_amil && q.status !== 'dibatalkan') {
+            try {
+              const parsed = JSON.parse(q.catatan_amil);
+              if (parsed.documents && Array.isArray(parsed.documents)) {
+                parsed.documents.forEach((doc: DocumentItem) => {
+                  if (doc.filename && doc.filename.trim() !== '') {
+                    cloudEvidence.push({
+                      id: `ev-${doc.id}-${q.id}`,
+                      applicantName: q.mustahik_name,
+                      title: doc.name || doc.id.toUpperCase(),
+                      filename: doc.filename,
+                      type: 'dokumen',
+                      status: doc.status === 'terverifikasi' ? 'terverifikasi' : doc.status === 'ditolak' ? 'perlu_revisi' : 'menunggu',
+                      submittedAt: q.created_at ? new Date(q.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }) : 'Hari ini',
+                      notes: doc.notes,
+                    });
+                  }
+                });
+              }
+            } catch {}
+          }
+        });
+
+        if (cloudEvidence.length > 0) {
+          setEvidenceQueue(cloudEvidence);
+        }
       } else {
         setApplicants([]);
+        setEvidenceQueue([]);
       }
     } catch (err) {
       console.warn('Error syncing data from Supabase:', err);
@@ -280,9 +375,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const uploadDocument = (id: string, filename: string) => {
-    setDocuments(prev =>
-      prev.map(d => (d.id === id ? { ...d, filename, status: 'menunggu' } : d))
-    );
+    let nextDocs: DocumentItem[] = [];
+    setDocuments(prev => {
+      const next = prev.map(d => (d.id === id ? { ...d, filename, status: 'menunggu' as const } : d));
+      nextDocs = next;
+      if (typeof window !== 'undefined' && currentUser?.email) {
+        localStorage.setItem(`zm_docs_${currentUser.email.toLowerCase()}`, JSON.stringify(next));
+      }
+      return next;
+    });
+
+    if (currentUser?.email) {
+      import('@/services/zakatService').then(({ saveDocumentsMetadata }) => {
+        saveDocumentsMetadata(currentUser.email, nextDocs);
+      }).catch(err => console.warn('Cloud sync error:', err));
+    }
+
     // Upsert ke antrean Amil: ganti jika tipe dokumen yang sama sudah ada
     const newEvidence: EvidenceItem = {
       id: `ev-${id}-${Date.now()}`,
@@ -300,9 +408,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const deleteDocument = (id: string) => {
-    setDocuments(prev =>
-      prev.map(d => (d.id === id ? { ...d, filename: '', status: 'belum_diunggah' } : d))
-    );
+    let nextDocs: DocumentItem[] = [];
+    setDocuments(prev => {
+      const next = prev.map(d => (d.id === id ? { ...d, filename: '', status: 'belum_diunggah' as const } : d));
+      nextDocs = next;
+      if (typeof window !== 'undefined' && currentUser?.email) {
+        localStorage.setItem(`zm_docs_${currentUser.email.toLowerCase()}`, JSON.stringify(next));
+      }
+      return next;
+    });
+
+    if (currentUser?.email) {
+      import('@/services/zakatService').then(({ saveDocumentsMetadata }) => {
+        saveDocumentsMetadata(currentUser.email, nextDocs);
+      }).catch(err => console.warn('Cloud sync error:', err));
+    }
+
     setEvidenceQueue(prev => prev.filter(e => e.title.toUpperCase() !== id.toUpperCase()));
   };
 
@@ -394,17 +515,27 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (!targetItem) return;
 
     if (targetItem.type === 'dokumen') {
-      setDocuments(prev =>
-        prev.map(d =>
-          targetItem.title.toLowerCase().includes(d.id)
+      const docKey = targetItem.title.toLowerCase();
+      setDocuments(prev => {
+        const next = prev.map(d =>
+          docKey.includes(d.id.toLowerCase()) || d.name.toLowerCase().includes(docKey)
             ? { 
                 ...d, 
-                status: isApproved ? 'terverifikasi' : 'ditolak',
+                status: (isApproved ? 'terverifikasi' : 'ditolak') as VerificationStatus,
                 notes: notes ? `Catatan Amil: ${notes}` : d.notes 
               }
             : d
-        )
-      );
+        );
+        if (typeof window !== 'undefined' && currentUser?.email) {
+          localStorage.setItem(`zm_docs_${currentUser.email.toLowerCase()}`, JSON.stringify(next));
+        }
+        return next;
+      });
+
+      // Simpan perubahan verifikasi ke Supabase
+      import('@/services/zakatService').then(({ updateEvidenceVerification }) => {
+        updateEvidenceVerification(id, targetItem.applicantName, isApproved, notes);
+      }).catch(err => console.warn('Supabase verify evidence error:', err));
     } else if (targetItem.type === 'tugas') {
       setMentoringModules(prev =>
         prev.map(m =>
@@ -560,16 +691,35 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setRole(newRole);
     const targetEmail = email || (newRole === 'mustahik' ? 'mustahik@contoh.id' : newRole === 'amil' ? 'amil@baznas.go.id' : 'muzakki@contoh.id');
     const targetName = name || (newRole === 'mustahik' ? 'Mustahik Binaan' : newRole === 'amil' ? 'Amil Verifikator' : 'Muzakki');
-    setCurrentUser({
+    const userObj = {
       role: newRole,
       email: targetEmail,
       name: targetName,
-    });
+    };
+    setCurrentUser(userObj);
+
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('zm_session', JSON.stringify(userObj));
+      } catch (e) {
+        console.warn('Error saving session to localStorage:', e);
+      }
+    }
 
     if (newRole === 'mustahik') {
-      // Semua mustahik mulai dari profil bersih (data ditarik dari Supabase jika ada)
+      // Ambil cache lokal berkas jika sudah ada sebelum cloud sync selesai
+      let localDocs = emptyDocuments;
+      if (typeof window !== 'undefined') {
+        const cached = localStorage.getItem(`zm_docs_${targetEmail.toLowerCase()}`);
+        if (cached) {
+          try {
+            localDocs = JSON.parse(cached);
+          } catch {}
+        }
+      }
+
       setBusinessProfile(emptyBusinessProfile(targetName));
-      setDocuments(emptyDocuments);
+      setDocuments(localDocs);
       setSubmissionStatus('draft');
       setCurrent6MStep(1);
       setApplicationStep(0);
@@ -582,7 +732,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const logout = () => {
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.removeItem('zm_session');
+      } catch (e) {
+        console.warn('Error removing session from localStorage:', e);
+      }
+    }
     setIsLoggedIn(false);
+    setCurrentUser(null);
   };
 
   // Batalkan Pengajuan (Withdraw) ke Supabase & Local State
@@ -633,7 +791,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     try {
       const { saveOrUpdateMapping } = await import('@/services/zakatService');
       if (currentUser?.email) {
-        await saveOrUpdateMapping(businessProfile, currentUser.email, currentUser.name);
+        await saveOrUpdateMapping(businessProfile, currentUser.email, currentUser.name, 3500000, documents);
       }
     } catch (e) {
       console.warn('Save to Supabase error:', e);
