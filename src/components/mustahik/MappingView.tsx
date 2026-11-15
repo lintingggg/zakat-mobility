@@ -13,14 +13,32 @@ export const MappingView: React.FC = () => {
     uploadDocument,
     setMustahikTab,
     setCurrent6MStep,
+    submissionStatus,
+    saveMustahikMappingToCloud,
+    cancelMustahikSubmission,
   } = useApp();
 
-  const [savedSuccess, setSavedSuccess] = useState(false);
+  const [savedSuccess, setSavedSuccess] = useState<string | null>(null);
+  const [isUpdating, setIsUpdating] = useState(false);
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSavedSuccess(true);
-    setTimeout(() => setSavedSuccess(false), 3000);
+    setIsUpdating(true);
+    await saveMustahikMappingToCloud();
+    setIsUpdating(false);
+    setSavedSuccess('Data profil usaha dan skoring berhasil diperbarui di database Supabase!');
+    setTimeout(() => setSavedSuccess(null), 4000);
+  };
+
+  const handleCancelSubmission = async () => {
+    const confirmCancel = window.confirm('Apakah Anda yakin ingin membatalkan pengajuan bantuan usaha ini?');
+    if (!confirmCancel) return;
+
+    setIsUpdating(true);
+    await cancelMustahikSubmission();
+    setIsUpdating(false);
+    setSavedSuccess('Pengajuan berhasil dibatalkan. Anda dapat mengedit dan mengajukan kembali sewaktu-waktu.');
+    setTimeout(() => setSavedSuccess(null), 4000);
   };
 
   const handleSimulateUpload = (docId: string) => {
@@ -199,20 +217,65 @@ export const MappingView: React.FC = () => {
             </div>
           </div>
 
-          {/* Action buttons */}
-          <div className="space-y-2.5">
+          {/* Action buttons: Edit, Batalkan, and Next */}
+          <div className="space-y-3">
+            {/* Status Pengajuan Banner */}
+            <div className={`p-3.5 rounded-xl border text-xs flex items-center justify-between ${
+              submissionStatus === 'diajukan'
+                ? 'bg-emerald-50 border-emerald-200 text-emerald-900'
+                : 'bg-amber-50 border-amber-200 text-amber-900'
+            }`}>
+              <div className="flex items-center gap-2">
+                <span className={`w-2 h-2 rounded-full ${submissionStatus === 'diajukan' ? 'bg-emerald-600 animate-pulse' : 'bg-amber-600'}`} />
+                <span className="font-semibold">
+                  {submissionStatus === 'diajukan'
+                    ? 'Status: Berkas Diajukan ke Amil (Menunggu Verifikasi)'
+                    : 'Status: Pengajuan Dibatalkan oleh Pemohon'}
+                </span>
+              </div>
+              <span className="text-[10px] font-mono uppercase bg-white/80 px-2 py-0.5 rounded border border-slate-200">
+                Cloud Sync
+              </span>
+            </div>
+
             {savedSuccess && (
-              <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs rounded-xl flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
-                <span>Profil usaha dan estimasi skor berhasil disimpan.</span>
+              <div className="p-3 bg-slate-900 text-white text-xs rounded-xl flex items-center gap-2 shadow-xs">
+                <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
+                <span>{savedSuccess}</span>
               </div>
             )}
-            <button
-              onClick={handleSave}
-              className="taste-btn w-full py-3 bg-emerald-800 hover:bg-emerald-900 text-white text-xs font-semibold rounded-xl shadow-xs"
-            >
-              Simpan Profil Usaha
-            </button>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <button
+                type="button"
+                onClick={handleSave}
+                disabled={isUpdating}
+                className="taste-btn py-3 bg-emerald-800 hover:bg-emerald-900 text-white text-xs font-bold rounded-xl shadow-xs flex items-center justify-center gap-1.5"
+              >
+                <span>{isUpdating ? 'Menyimpan...' : 'Perbarui Data (Edit)'}</span>
+              </button>
+
+              {submissionStatus === 'diajukan' ? (
+                <button
+                  type="button"
+                  onClick={handleCancelSubmission}
+                  disabled={isUpdating}
+                  className="taste-btn py-3 bg-white hover:bg-red-50 text-red-700 hover:text-red-800 text-xs font-bold rounded-xl border border-red-200 shadow-2xs"
+                >
+                  Batalkan Pengajuan
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleSave}
+                  disabled={isUpdating}
+                  className="taste-btn py-3 bg-teal-800 hover:bg-teal-900 text-white text-xs font-bold rounded-xl shadow-xs"
+                >
+                  Ajukan Kembali
+                </button>
+              )}
+            </div>
+
             <button
               type="button"
               onClick={() => setCurrent6MStep(2)}

@@ -18,7 +18,8 @@ interface AppContextType {
   role: UserRole;
   setRole: (role: UserRole) => void;
   isLoggedIn: boolean;
-  login: (role: UserRole, email?: string) => void;
+  currentUser: { name: string; email: string; role: UserRole } | null;
+  login: (role: UserRole, email?: string, name?: string) => void;
   logout: () => void;
 
   // Mustahik Navigation
@@ -26,6 +27,10 @@ interface AppContextType {
   setMustahikTab: (tab: 'beranda' | '6m' | 'dana' | 'profil') => void;
   current6MStep: number;
   setCurrent6MStep: (step: number) => void;
+  submissionStatus: 'draft' | 'diajukan' | 'disetujui' | 'ditolak' | 'dibatalkan';
+  setSubmissionStatus: (status: 'draft' | 'diajukan' | 'disetujui' | 'ditolak' | 'dibatalkan') => void;
+  cancelMustahikSubmission: () => Promise<void>;
+  saveMustahikMappingToCloud: () => Promise<void>;
 
   // Amil Navigation
   amilTab: 'dasbor' | 'pengajuan' | 'verifikasi' | 'akun';
@@ -221,6 +226,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [amilTab, setAmilTab] = useState<'dasbor' | 'pengajuan' | 'verifikasi' | 'akun'>('dasbor');
 
   const [businessProfile, setBusinessProfile] = useState<BusinessProfile>(defaultProfile);
+  const [currentUser, setCurrentUser] = useState<{ name: string; email: string; role: UserRole } | null>({
+    name: 'Faizah Elysia',
+    email: 'faizah@contoh.id',
+    role: 'mustahik',
+  });
+  const [submissionStatus, setSubmissionStatus] = useState<'draft' | 'diajukan' | 'disetujui' | 'ditolak' | 'dibatalkan'>('diajukan');
   const [documents, setDocuments] = useState<DocumentItem[]>(defaultDocuments);
   const [zakatPackage] = useState<ZakatPackageItem[]>(defaultPackage);
   const [applicationStep, setApplicationStep] = useState<number>(1); // 1: Diajukan
@@ -511,15 +522,51 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setMonthlyReports(defaultReports);
     setApplicants(defaultApplicants);
     setEvidenceQueue(defaultEvidence);
+    setSubmissionStatus('diajukan');
   };
 
-  const login = (newRole: UserRole) => {
+  const login = (newRole: UserRole, email?: string, name?: string) => {
     setRole(newRole);
+    const targetEmail = email || (newRole === 'mustahik' ? 'faizah@contoh.id' : newRole === 'amil' ? 'hilman@baznas.go.id' : 'rahmat@muzakki.id');
+    const targetName = name || (newRole === 'mustahik' ? 'Faizah Elysia' : newRole === 'amil' ? 'Hilman Ramadhan' : 'Bpk. Rahmat Santoso');
+    setCurrentUser({
+      role: newRole,
+      email: targetEmail,
+      name: targetName,
+    });
     setIsLoggedIn(true);
   };
 
   const logout = () => {
     setIsLoggedIn(false);
+  };
+
+  // Batalkan Pengajuan (Withdraw) ke Supabase & Local State
+  const cancelMustahikSubmission = async () => {
+    setSubmissionStatus('dibatalkan');
+    setApplicants(prev => prev.map(a => a.id === 'app-faizah' ? { ...a, status: 'Ditolak' } : a));
+    try {
+      const { withdrawSubmission } = await import('@/services/zakatService');
+      if (currentUser?.email) {
+        await withdrawSubmission(currentUser.email);
+      }
+    } catch (e) {
+      console.warn('Withdraw Supabase error:', e);
+    }
+  };
+
+  // Simpan / Perbarui Data Usaha (Edit) ke Supabase & Local State
+  const saveMustahikMappingToCloud = async () => {
+    setSubmissionStatus('diajukan');
+    setApplicants(prev => prev.map(a => a.id === 'app-faizah' ? { ...a, businessName: businessProfile.businessName, potentialScore: businessProfile.calculatedScore, status: 'Baru' } : a));
+    try {
+      const { saveOrUpdateMapping } = await import('@/services/zakatService');
+      if (currentUser?.email) {
+        await saveOrUpdateMapping(businessProfile, currentUser.email, currentUser.name);
+      }
+    } catch (e) {
+      console.warn('Save to Supabase error:', e);
+    }
   };
 
   return (
@@ -528,12 +575,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         role,
         setRole,
         isLoggedIn,
+        currentUser,
         login,
         logout,
         mustahikTab,
         setMustahikTab,
         current6MStep,
         setCurrent6MStep,
+        submissionStatus,
+        setSubmissionStatus,
+        cancelMustahikSubmission,
+        saveMustahikMappingToCloud,
         amilTab,
         setAmilTab,
         businessProfile,

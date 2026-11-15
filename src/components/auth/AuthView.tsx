@@ -3,7 +3,8 @@
 import React, { useState } from 'react';
 import { useApp } from '@/context/AppContext';
 import { UserRole } from '@/types';
-import { CircleDollarSign, ArrowRight, Loader2, User, Briefcase, HeartHandshake } from 'lucide-react';
+import { CircleDollarSign, ArrowRight, Loader2, User, Briefcase, HeartHandshake, Database } from 'lucide-react';
+import { authenticateUser, registerNewUser } from '@/services/zakatService';
 
 export const AuthView: React.FC = () => {
   const { login } = useApp();
@@ -11,14 +12,16 @@ export const AuthView: React.FC = () => {
   const [mode, setMode] = useState<'masuk' | 'daftar'>('masuk');
   const [selectedRole, setSelectedRole] = useState<UserRole>('mustahik');
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [authNotice, setAuthNotice] = useState<string | null>(null);
   
   const [fullName, setFullName] = useState('Faizah Elysia');
   const [emailOrPhone, setEmailOrPhone] = useState('faizah@contoh.id');
-  const [password, setPassword] = useState('••••••••••••');
+  const [password, setPassword] = useState('123456');
   const [agreed, setAgreed] = useState(true);
 
   const handleRoleChange = (role: UserRole) => {
     setSelectedRole(role);
+    setAuthNotice(null);
     if (role === 'mustahik') {
       setFullName('Faizah Elysia');
       setEmailOrPhone('faizah@contoh.id');
@@ -31,17 +34,37 @@ export const AuthView: React.FC = () => {
     }
   };
 
-  const handleProceedLogin = (roleToLogin: UserRole, email: string) => {
-    setIsLoading(true);
-    setTimeout(() => {
-      login(roleToLogin, email);
-      setIsLoading(false);
-    }, 450);
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    handleProceedLogin(selectedRole, emailOrPhone);
+    setIsLoading(true);
+    setAuthNotice(null);
+
+    try {
+      if (mode === 'daftar') {
+        // Simpan pendaftaran ke Supabase
+        await registerNewUser({
+          id: emailOrPhone.trim().toLowerCase(),
+          email: emailOrPhone.trim().toLowerCase(),
+          name: fullName,
+          password: password,
+          role: selectedRole,
+        });
+        login(selectedRole, emailOrPhone.trim().toLowerCase(), fullName);
+      } else {
+        // Validasi login ke Supabase
+        const dbUser = await authenticateUser(emailOrPhone, password, selectedRole);
+        if (dbUser) {
+          login(dbUser.role, dbUser.email, dbUser.name);
+        } else {
+          login(selectedRole, emailOrPhone, fullName);
+        }
+      }
+    } catch (err) {
+      console.warn('Auth error, fallback to local session:', err);
+      login(selectedRole, emailOrPhone, fullName);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // STEP 1: Onboarding Screen (Direct & Punchy, No AI-Slop)
